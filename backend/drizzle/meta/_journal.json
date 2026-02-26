@@ -1,13 +1,27 @@
 {
-	"version": "7",
-	"dialect": "postgresql",
-	"entries": [
-		{
-			"idx": 0,
-			"version": "7",
-			"when": 1772117502892,
-			"tag": "0000_brown_iron_lad",
-			"breakpoints": true
-		}
-	]
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1772117502892,
+      "tag": "0000_brown_iron_lad",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772129296736,
+      "tag": "0001_abandoned_micromax",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772133296052,
+      "tag": "0002_greedy_yellow_claw",
+      "breakpoints": true
+    }
+  ]
 }

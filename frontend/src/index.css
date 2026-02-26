@@ -1,3 +1,54 @@
+/**
+ * WebhookLab theme variables for light and dark mode.
+ * data-theme is set by useThemeEffect based on Zustand store.
+ */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root,
+[data-theme="light"] {
+	--wl-bg: #f8fafc;
+	--wl-bg-subtle: #f1f5f9;
+	--wl-bg-muted: #e2e8f0;
+	--wl-border: #cbd5e1;
+	--wl-border-subtle: #e2e8f0;
+	--wl-text: #0f172a;
+	--wl-text-muted: #475569;
+	--wl-text-subtle: #64748b;
+	--wl-accent: #6366f1;
+	--wl-accent-hover: #4f46e5;
+	--wl-selected-bg: #e0f2fe;
+	--wl-selected-border: #0ea5e9;
+	--wl-method-get: #16a34a;
+	--wl-method-post: #2563eb;
+	--wl-method-put: #ea580c;
+	--wl-method-patch: #ca8a04;
+	--wl-method-delete: #dc2626;
+}
+
+html,
+body {
+	background-color: var(--wl-bg);
+	color: var(--wl-text);
+}
+
+[data-theme="dark"] {
+	--wl-bg: #0f172a;
+	--wl-bg-subtle: #1e293b;
+	--wl-bg-muted: #334155;
+	--wl-border: #475569;
+	--wl-border-subtle: #334155;
+	--wl-text: #f8fafc;
+	--wl-text-muted: #cbd5e1;
+	--wl-text-subtle: #94a3b8;
+	--wl-accent: #818cf8;
+	--wl-accent-hover: #6366f1;
+	--wl-selected-bg: #1e3a5f;
+	--wl-selected-border: #38bdf8;
+	--wl-method-get: #22c55e;
+	--wl-method-post: #3b82f6;
+	--wl-method-put: #f97316;
+	--wl-method-patch: #eab308;
+	--wl-method-delete: #ef4444;
+}

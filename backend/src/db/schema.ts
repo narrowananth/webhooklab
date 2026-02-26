@@ -9,11 +9,17 @@ import {
 	varchar,
 } from "drizzle-orm/pg-core";
 
-export const webhooks = pgTable("webhooks", {
-	id: bigserial("id", { mode: "number" }).primaryKey(),
-	webhookId: uuid("webhook_id").notNull().unique(),
-	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const webhooks = pgTable(
+	"webhooks",
+	{
+		id: bigserial("id", { mode: "number" }).primaryKey(),
+		webhookId: uuid("webhook_id").notNull().unique(),
+		slug: varchar("slug", { length: 100 }).unique(),
+		name: varchar("name", { length: 255 }),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [index("idx_webhooks_slug").on(table.slug)],
+);
 
 export const requests = pgTable(
 	"requests",
@@ -26,7 +32,8 @@ export const requests = pgTable(
 		url: text("url").notNull(),
 		headers: jsonb("headers").$type<Record<string, string>>().default({}),
 		queryParams: jsonb("query_params").$type<Record<string, string>>().default({}),
-		body: jsonb("body").$type<Record<string, unknown>>().default({}),
+		body: jsonb("body").$type<Record<string, unknown> | null>().default(null),
+		rawBody: text("raw_body"),
 		ip: varchar("ip", { length: 100 }),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},

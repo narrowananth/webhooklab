@@ -5,6 +5,20 @@
 		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>WebhookLab - Webhook Testing & Inspection</title>
+		<script>
+			(function() {
+				try {
+					var theme = 'dark';
+					var s = localStorage.getItem('webhooklab-inspect');
+					if (s) {
+						var o = JSON.parse(s);
+						if (o.state && o.state.theme) theme = o.state.theme;
+					}
+					document.documentElement.setAttribute('data-theme', theme);
+					document.documentElement.style.colorScheme = theme;
+				} catch (_) {}
+			})();
+		</script>
 	</head>
 	<body>
 		<div id="root"></div>
