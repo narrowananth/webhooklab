@@ -6,8 +6,8 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"include": ["src/**/*.ts", "src/**/*.tsx"],
-		"ignore": ["node_modules", "dist", "*.config.*", "build"]
+		"include": ["src/**/*.ts", "**/*.json"],
+		"ignore": ["node_modules", "dist", "*.config.*", "drizzle/*.sql", "pnpm-lock.yaml"]
 	},
 	"formatter": {
 		"enabled": true,

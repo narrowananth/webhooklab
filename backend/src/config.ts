@@ -1,15 +1,16 @@
+import "dotenv/config";
 import { z } from "zod";
 
 const envSchema = z.object({
-	NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
-	PORT: z.string().transform(Number).default("4000"),
+	NODE_ENV: z.enum(["development", "production", "test"]),
+	PORT: z.string().transform(Number),
 	DATABASE_URL: z.string().url().optional(),
-	POSTGRES_HOST: z.string().default("localhost"),
-	POSTGRES_PORT: z.string().transform(Number).default("5432"),
-	POSTGRES_USER: z.string().default("postgres"),
-	POSTGRES_PASSWORD: z.string().default("postgres"),
-	POSTGRES_DB: z.string().default("webhooklab"),
-	FRONTEND_URL: z.string().default("*"),
+	POSTGRES_HOST: z.string(),
+	POSTGRES_PORT: z.string().transform(Number),
+	POSTGRES_USER: z.string(),
+	POSTGRES_PASSWORD: z.string(),
+	POSTGRES_DB: z.string(),
+	FRONTEND_URL: z.string(),
 });
 
 const parsed = envSchema.safeParse(process.env);

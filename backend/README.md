@@ -25,7 +25,8 @@ cp .env.example .env   # Edit with your PostgreSQL credentials
 | `pnpm start` | Run compiled output |
 | `pnpm db:generate` | Generate Drizzle migrations |
 | `pnpm db:migrate` | Apply migrations |
-| `pnpm db:push` | Push schema to DB (dev) |
+| `pnpm db:push` | Push schema to DB (creates tables, use for fresh setup) |
+| `pnpm db:check` | List DB tables and migration status |
 | `pnpm db:studio` | Open Drizzle Studio |
 | `pnpm lint` | Biome check |
 | `pnpm lint:fix` | Biome fix |

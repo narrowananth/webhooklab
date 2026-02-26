@@ -28,10 +28,10 @@ pnpm install
 
 Copy `.env.example` to `.env` and adjust as needed:
 
-| Variable            | Description                      | Default              |
-|---------------------|----------------------------------|----------------------|
-| `VITE_BACKEND_URL`  | Backend API/WebSocket base URL   | `http://localhost:4000` |
-| `VITE_DEV_PORT`     | Dev server port (optional)       | `5173`               |
+| Variable            | Description                      | Required |
+|---------------------|----------------------------------|----------|
+| `VITE_BACKEND_URL`  | Backend API/WebSocket base URL   | yes      |
+| `VITE_PORT`         | Dev server port                  | yes      |
 
 ## Proxy
 

@@ -1,17 +1,17 @@
 CREATE TABLE "requests" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" bigserial PRIMARY KEY NOT NULL,
 	"webhook_id" uuid NOT NULL,
 	"method" varchar(10) NOT NULL,
 	"url" text NOT NULL,
 	"headers" jsonb DEFAULT '{}'::jsonb,
 	"query_params" jsonb DEFAULT '{}'::jsonb,
-	"body" text,
-	"ip" varchar(45),
+	"body" jsonb DEFAULT '{}'::jsonb,
+	"ip" varchar(100),
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "webhooks" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" bigserial PRIMARY KEY NOT NULL,
 	"webhook_id" uuid NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "webhooks_webhook_id_unique" UNIQUE("webhook_id")

@@ -1,7 +1,16 @@
-import { index, jsonb, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import {
+	bigserial,
+	index,
+	jsonb,
+	pgTable,
+	text,
+	timestamp,
+	uuid,
+	varchar,
+} from "drizzle-orm/pg-core";
 
 export const webhooks = pgTable("webhooks", {
-	id: uuid("id").primaryKey().defaultRandom(),
+	id: bigserial("id", { mode: "number" }).primaryKey(),
 	webhookId: uuid("webhook_id").notNull().unique(),
 	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -9,7 +18,7 @@ export const webhooks = pgTable("webhooks", {
 export const requests = pgTable(
 	"requests",
 	{
-		id: uuid("id").primaryKey().defaultRandom(),
+		id: bigserial("id", { mode: "number" }).primaryKey(),
 		webhookId: uuid("webhook_id")
 			.notNull()
 			.references(() => webhooks.webhookId, { onDelete: "cascade" }),
@@ -17,8 +26,8 @@ export const requests = pgTable(
 		url: text("url").notNull(),
 		headers: jsonb("headers").$type<Record<string, string>>().default({}),
 		queryParams: jsonb("query_params").$type<Record<string, string>>().default({}),
-		body: text("body"),
-		ip: varchar("ip", { length: 45 }),
+		body: jsonb("body").$type<Record<string, unknown>>().default({}),
+		ip: varchar("ip", { length: 100 }),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [
