@@ -479,9 +479,10 @@ export function RequestListPanel({
 				)}
 			</Box>
 
-			{/* Page size dropdown + pagination bar - always visible */}
+			{/* Page size dropdown + pagination bar - always visible (height matches detail pane footer) */}
 			{onPageSizeChange && (
 				<Flex
+					minH="var(--wl-footer-bar-height)"
 					px="var(--wl-fluid-px)"
 					py="var(--wl-fluid-py)"
 					borderTopWidth="1px"

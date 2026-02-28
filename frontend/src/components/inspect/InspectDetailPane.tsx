@@ -499,9 +499,9 @@ export function InspectDetailPane() {
 				)}
 			</Box>
 
-			{/* Footer: Size, Format, Received */}
+			{/* Footer: Size, Format, Received (height matches sidebar pagination bar) */}
 			<Flex
-				minH={10}
+				minH="var(--wl-footer-bar-height)"
 				shrink={0}
 				align="center"
 				justify="space-between"

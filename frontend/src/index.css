@@ -137,6 +137,9 @@
 	/* Header URL bar - expands with viewport, up to 900px on large screens */
 	--wl-header-url-max: min(900px, 55vw);
 	--wl-header-height: clamp(48px, 8vh, 56px);
+
+	/* Sidebar + detail pane footer bar - matched height */
+	--wl-footer-bar-height: 61px;
 }
 
 /* Dark mode (default for dev tools) */
