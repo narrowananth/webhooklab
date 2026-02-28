@@ -20,7 +20,18 @@ import {
 import { useWebSocket } from "../hooks/useWebSocket";
 import { useInspectStore } from "../store/useInspectStore";
 import { toFullWebhookUrl } from "../utils/truncateUrl";
+import { UUID_REGEX } from "../api";
 import type { WebhookEvent } from "../types";
+
+/** Resolved webhook ID (UUID) for API calls - URL param may be UUID or slug */
+function useResolvedWebhookId(
+	webhookId: string | undefined,
+	webhook: { id: string } | undefined,
+): string | undefined {
+	if (!webhookId) return undefined;
+	if (UUID_REGEX.test(webhookId)) return webhookId;
+	return webhook?.id;
+}
 
 export function Inspect() {
 	const { webhookId } = useParams<{ webhookId: string }>();
@@ -38,16 +49,17 @@ export function Inspect() {
 	const [searchPage, setSearchPage] = useState(1);
 
 	const { data: webhook, isLoading: webhookLoading } = useWebhookQuery(webhookId ?? undefined);
+	const resolvedId = useResolvedWebhookId(webhookId ?? undefined, webhook);
 	const { data: eventsData, isLoading: eventsLoading } = useEventsQuery(
-		webhookId ?? undefined,
+		resolvedId,
 		1,
 		pageSize,
 	);
-	const clearMutation = useClearEventsMutation(webhookId ?? undefined);
+	const clearMutation = useClearEventsMutation(resolvedId);
 	const { events: wsEvents, setEvents, connected } =
-		useWebSocket(webhookId ?? null);
+		useWebSocket(resolvedId ?? null);
 	const { data: stats, isLoading: statsLoading } = useEventStatsQuery(
-		webhookId ?? undefined,
+		resolvedId,
 	);
 
 	const hasFilters = !!(
@@ -67,7 +79,7 @@ export function Inspect() {
 	};
 
 	const { data: searchData, isLoading: searchLoading } = useSearchEventsQuery(
-		webhookId ?? undefined,
+		resolvedId,
 		searchQueryParams,
 		hasFilters,
 	);
@@ -184,7 +196,7 @@ export function Inspect() {
 			</Box>
 
 			<InspectFooter
-				webhookId={webhookId}
+				webhookId={resolvedId ?? null}
 				requestCount={
 					stats?.count ??
 					(hasFilters ? pagination?.total ?? 0 : displayEvents.length)

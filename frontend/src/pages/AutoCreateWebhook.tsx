@@ -1,13 +1,13 @@
 /**
- * Landing: auto-creates a webhook on visit and redirects to inspect.
- * No form - visiting the domain immediately gives you a webhook URL.
+ * Auto-create webhook on visit and redirect to inspect.
+ * Used for root path (/) - visiting or refreshing creates a new webhook URL.
  */
 import { Box, Spinner, Text } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createWebhook } from "../api";
 
-export function Landing() {
+export function AutoCreateWebhook() {
 	const navigate = useNavigate();
 
 	useEffect(() => {

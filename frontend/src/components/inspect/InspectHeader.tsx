@@ -45,7 +45,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 			gap={6}
 		>
 			{/* Logo + Connection status */}
-			<Flex align="center" gap={6} flexShrink={0}>
+			<Flex align="center" gap={6} flexShrink={0} minH={10}>
 				<Link
 					to="/"
 					style={{
@@ -106,7 +106,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 			</Flex>
 
 			{/* Centered webhook URL with copy */}
-			<Flex flex={1} maxW="2xl" px={{ base: 2, md: 8 }} minW={0}>
+			<Flex flex={1} maxW="2xl" px={{ base: 2, md: 8 }} minW={0} align="center" minH={10}>
 				<Flex
 					align="center"
 					flex={1}
@@ -115,7 +115,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 					borderColor="var(--wl-border-subtle)"
 					rounded="md"
 					overflow="hidden"
-					minH={0}
+					minH={10}
 				>
 					<Text
 						px={2}
@@ -153,7 +153,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 			</Flex>
 
 			{/* Pause, Clear, Theme toggle */}
-			<Flex align="center" gap={3} flexShrink={0}>
+			<Flex align="center" gap={3} flexShrink={0} minH={10}>
 				<Flex
 					bg="var(--wl-bg)"
 					p={1}

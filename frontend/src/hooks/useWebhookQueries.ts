@@ -12,7 +12,7 @@ import {
 	getEvent,
 	getEvents,
 	getEventStats,
-	getWebhook,
+	getWebhookByIdOrSlug,
 	searchEvents,
 } from "../api";
 import type { SearchEventsParams } from "../types";
@@ -42,11 +42,11 @@ export const eventKeys = {
 		] as const,
 };
 
-/** Fetch webhook inbox details */
+/** Fetch webhook inbox details (supports UUID or slug for /webhook/:id routes) */
 export function useWebhookQuery(webhookId: string | undefined) {
 	return useQuery({
 		queryKey: webhookKeys.detail(webhookId ?? ""),
-		queryFn: () => getWebhook(webhookId!),
+		queryFn: () => getWebhookByIdOrSlug(webhookId!),
 		enabled: !!webhookId,
 	});
 }

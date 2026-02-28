@@ -130,7 +130,7 @@ export function InspectDetailPane() {
 				gap={{ base: 2, md: 4 }}
 				flexWrap="wrap"
 			>
-				<Flex align="center" gap={2} minW={0} flex={1}>
+				<Flex align="center" gap={2} minW={0} flex={1} minH={10}>
 					<Badge
 						colorPalette={METHOD_COLORS[event.method] ?? "gray"}
 						size="sm"
@@ -152,7 +152,7 @@ export function InspectDetailPane() {
 						{path}
 					</Text>
 				</Flex>
-				<Flex align="center" gap={1} flexShrink={0}>
+				<Flex align="center" gap={1} flexShrink={0} minH={10}>
 					<Box position="relative">
 						<Button
 							size="sm"

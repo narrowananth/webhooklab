@@ -23,10 +23,24 @@ export async function createWebhook(
 	return res.json();
 }
 
+/** UUID v4 format - used to distinguish UUID from slug in /webhook/:id */
+export const UUID_REGEX =
+	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function getWebhook(id: string): Promise<WebhookInbox> {
 	const res = await fetch(`${API}/webhooks/${id}`);
 	if (!res.ok) throw new Error(await res.text());
 	return res.json();
+}
+
+/** Fetch webhook by UUID or slug (for /webhook/:id routes) */
+export async function getWebhookByIdOrSlug(
+	idOrSlug: string,
+): Promise<WebhookInbox> {
+	if (UUID_REGEX.test(idOrSlug)) {
+		return getWebhook(idOrSlug);
+	}
+	return getWebhookBySlug(idOrSlug);
 }
 
 export async function getWebhookBySlug(slug: string): Promise<WebhookInbox> {
