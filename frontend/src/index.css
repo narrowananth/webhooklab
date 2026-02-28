@@ -111,8 +111,32 @@
 	--wl-icon-lg: 18px;
 	--wl-icon-xl: 20px;
 
-	/* Sidebar */
-	--wl-sidebar-width: 340px;
+	/* Sidebar - fluid: scales with viewport, never overflows on small screens */
+	--wl-sidebar-width: clamp(260px, 28vw, 340px);
+	--wl-sidebar-min-width: 260px;
+	--wl-sidebar-max-width: 340px;
+
+	/* Fluid spacing - scales with viewport width */
+	--wl-fluid-xs: clamp(4px, 0.5vw, 6px);
+	--wl-fluid-sm: clamp(6px, 1vw, 10px);
+	--wl-fluid-md: clamp(12px, 1.5vw, 18px);
+	--wl-fluid-lg: clamp(16px, 2vw, 24px);
+	--wl-fluid-xl: clamp(20px, 2.5vw, 32px);
+
+	/* Fluid typography - scales with viewport */
+	--wl-fluid-font-xs: clamp(11px, 1.2vw, 13px);
+	--wl-fluid-font-sm: clamp(12px, 1.4vw, 14px);
+	--wl-fluid-font-base: clamp(13px, 1.6vw, 16px);
+	--wl-fluid-font-md: clamp(14px, 1.8vw, 18px);
+	--wl-fluid-font-lg: clamp(15px, 2vw, 20px);
+
+	/* Fluid padding for sections */
+	--wl-fluid-px: clamp(12px, 2vw, 24px);
+	--wl-fluid-py: clamp(8px, 1.5vw, 16px);
+
+	/* Header URL bar - expands with viewport, up to 900px on large screens */
+	--wl-header-url-max: min(900px, 55vw);
+	--wl-header-height: clamp(48px, 8vh, 56px);
 }
 
 /* Dark mode (default for dev tools) */
@@ -183,9 +207,9 @@
 	--wl-error-muted: #450a0a;
 }
 
-/* Base */
+/* Base - fluid root font scales with viewport */
 html {
-	font-size: 14px;
+	font-size: clamp(13px, 1.4vw + 10px, 16px);
 	line-height: 1.5;
 }
 

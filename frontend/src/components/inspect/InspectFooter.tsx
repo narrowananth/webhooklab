@@ -46,8 +46,8 @@ export function InspectFooter({
 			bg="var(--wl-bg-subtle)"
 			borderTopWidth="1px"
 			borderColor="var(--wl-border-subtle)"
-			px={4}
-			py={2}
+			px="var(--wl-fluid-px)"
+			py="var(--wl-fluid-py)"
 			minH={10}
 			display={{ base: "none", md: "block" }}
 		>

@@ -41,7 +41,7 @@ export function JsonViewer({ event, tab, searchFilter }: JsonViewerProps) {
 			<Box
 				flex={1}
 				overflow="auto"
-				p={{ base: 4, md: 6 }}
+				p="var(--wl-fluid-px)"
 				css={{ "&::-webkit-scrollbar": { width: 6 } }}
 			>
 				<Text
@@ -62,7 +62,7 @@ export function JsonViewer({ event, tab, searchFilter }: JsonViewerProps) {
 		<Box
 			flex={1}
 			overflow="auto"
-			p={{ base: 4, md: 6 }}
+			p="var(--wl-fluid-px)"
 			minH="200px"
 			css={{
 				"&::-webkit-scrollbar": { width: 6 },

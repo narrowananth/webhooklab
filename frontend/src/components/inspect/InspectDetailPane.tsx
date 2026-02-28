@@ -122,8 +122,8 @@ export function InspectDetailPane() {
 				shrink={0}
 				align="center"
 				justify="space-between"
-				px={{ base: 4, md: 6 }}
-				py={2}
+				px="var(--wl-fluid-px)"
+				py="var(--wl-fluid-py)"
 				borderBottomWidth="1px"
 				borderColor="var(--wl-border-subtle)"
 				bg="var(--wl-bg-subtle)"
@@ -250,8 +250,8 @@ export function InspectDetailPane() {
 			{/* Meta bar: #ID, IP, Time, Size, Content-Type */}
 			<Flex
 				minH={10}
-				px={{ base: 4, md: 6 }}
-				py={2}
+				px="var(--wl-fluid-px)"
+				py="var(--wl-fluid-py)"
 				gap={4}
 				fontSize="xs"
 				color="var(--wl-text-subtle)"
@@ -282,7 +282,7 @@ export function InspectDetailPane() {
 					</span>
 					{formatSize(requestSizeBytes)}
 				</Flex>
-				<Text as="span" fontFamily="var(--wl-font-mono)" fontSize="12px" truncate maxW="200px">
+				<Text as="span" fontFamily="var(--wl-font-mono)" fontSize="var(--wl-fluid-font-xs)" truncate maxW="min(200px, 40vw)">
 					{Object.entries(event.headers ?? {}).find(
 						([k]) => k.toLowerCase() === "content-type",
 					)?.[1] ?? "—"}
@@ -292,9 +292,9 @@ export function InspectDetailPane() {
 			{/* Tabs + Share/Copy Body */}
 			<Flex
 				minH={12}
-				py={2}
-				px={{ base: 4, md: 6 }}
-				gap={{ base: 6, md: 8 }}
+				py="var(--wl-fluid-py)"
+				px="var(--wl-fluid-px)"
+				gap="var(--wl-fluid-lg)"
 				borderBottomWidth="1px"
 				borderColor="var(--wl-border-subtle)"
 				bg="var(--wl-bg-subtle)"
@@ -384,7 +384,7 @@ export function InspectDetailPane() {
 					</Box>
 				)}
 				{activeDetailTab === "headers" && (
-					<Box flex={1} overflow="auto" p={{ base: 4, md: 6 }} css={{ "&::-webkit-scrollbar": { width: 6 } }}>
+					<Box flex={1} overflow="auto" p="var(--wl-fluid-px)" css={{ "&::-webkit-scrollbar": { width: 6 } }}>
 					<Box>
 						{Object.keys(event.headers ?? {}).length === 0 ? (
 							<Text color="var(--wl-text-subtle)">No headers</Text>
@@ -441,7 +441,7 @@ export function InspectDetailPane() {
 				</Box>
 				)}
 				{activeDetailTab === "query" && (
-					<Box flex={1} overflow="auto" p={{ base: 4, md: 6 }} css={{ "&::-webkit-scrollbar": { width: 6 } }}>
+					<Box flex={1} overflow="auto" p="var(--wl-fluid-px)" css={{ "&::-webkit-scrollbar": { width: 6 } }}>
 					<Box>
 						{Object.keys(event.queryParams ?? {}).length === 0 ? (
 							<Text color="var(--wl-text-subtle)">No query parameters</Text>
@@ -505,8 +505,8 @@ export function InspectDetailPane() {
 				shrink={0}
 				align="center"
 				justify="space-between"
-				px={{ base: 4, md: 6 }}
-				py={{ base: 3, md: 2 }}
+				px="var(--wl-fluid-px)"
+				py="var(--wl-fluid-py)"
 				borderTopWidth="1px"
 				borderColor="var(--wl-border-subtle)"
 				bg="var(--wl-bg-subtle)"

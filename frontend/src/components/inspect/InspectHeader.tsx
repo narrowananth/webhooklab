@@ -5,6 +5,7 @@ import { Box, Flex, Text } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useInspectStore } from "../../store/useInspectStore";
+import { truncateUrlEnd } from "../../utils/truncateUrl";
 
 interface InspectHeaderProps {
 	webhookUrl: string;
@@ -13,11 +14,36 @@ interface InspectHeaderProps {
 	onClear: () => void;
 }
 
+/** Approximate char width for 13px monospace (JetBrains Mono) */
+const URL_CHAR_PX = 7.8;
+const URL_PADDING_PX = 52; // copy button + horizontal padding
+
 export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: InspectHeaderProps) {
 	const { isPaused, togglePaused, theme, toggleTheme, autoSelectNew, toggleAutoSelectNew } =
 		useInspectStore();
 	const [optionsOpen, setOptionsOpen] = useState(false);
 	const optionsRef = useRef<HTMLDivElement>(null);
+	const urlContainerRef = useRef<HTMLDivElement>(null);
+	const [displayUrl, setDisplayUrl] = useState(webhookUrl || "—");
+
+	useEffect(() => {
+		setDisplayUrl(webhookUrl || "—");
+	}, [webhookUrl]);
+
+	useEffect(() => {
+		const el = urlContainerRef.current;
+		if (!el) return;
+		const updateDisplay = () => {
+			const w = el.clientWidth;
+			const maxChars = Math.max(12, Math.floor((w - URL_PADDING_PX) / URL_CHAR_PX));
+			const url = webhookUrl || "—";
+			setDisplayUrl(truncateUrlEnd(url, maxChars));
+		};
+		updateDisplay();
+		const ro = new ResizeObserver(updateDisplay);
+		ro.observe(el);
+		return () => ro.disconnect();
+	}, [webhookUrl]);
 
 	useEffect(() => {
 		const handler = (e: MouseEvent) => {
@@ -32,21 +58,21 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 	return (
 		<Box
 			as="header"
-			h="56px"
-			minH="56px"
+			h="var(--wl-header-height)"
+			minH="var(--wl-header-height)"
 			flexShrink={0}
 			borderBottomWidth="1px"
 			borderColor="var(--wl-border-subtle)"
 			bg="var(--wl-bg-subtle)"
-			px={{ base: 4, md: 6 }}
+			px="var(--wl-fluid-px)"
 			display="flex"
 			flexWrap="wrap"
 			alignItems="center"
 			justifyContent="space-between"
-			gap={6}
+			gap="var(--wl-fluid-lg)"
 		>
 			{/* Logo + Connection status - compact left section */}
-			<Flex align="center" gap={4} flexShrink={0} w={{ base: "auto", md: "313px" }} h={10}>
+			<Flex align="center" gap="var(--wl-fluid-md)" flexShrink={0} w={{ base: "auto", md: "min(313px, 28vw)" }} minW={0} h={10}>
 				<Link
 					to="/"
 					style={{
@@ -107,12 +133,14 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 				</Flex>
 			</Flex>
 
-			{/* Centered webhook URL with copy - consistent height */}
-			<Flex flex={1} maxW="470px" minW={0} px={{ base: 2, md: 6 }} align="center" h={10} justify="center">
+			{/* Centered webhook URL with copy - expands to fill available space, trims when needed */}
+			<Flex flex={1} minW={0} maxW="var(--wl-header-url-max)" px="var(--wl-fluid-sm)" align="center" h={10} justify="center">
 				<Flex
+					ref={urlContainerRef}
 					align="center"
 					justify="center"
 					flex={1}
+					minW={0}
 					bg="var(--wl-bg)"
 					borderWidth="1px"
 					borderColor="var(--wl-border-subtle)"
@@ -128,13 +156,15 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 						lineHeight="1"
 						color="var(--wl-text-muted)"
 						flex={1}
-						overflowX="auto"
+						minW={0}
+						overflow="hidden"
+						textOverflow="ellipsis"
 						whiteSpace="nowrap"
 						alignSelf="center"
 						textAlign="center"
-						css={{ "&::-webkit-scrollbar": { height: 4 } }}
+						title={webhookUrl || "—"}
 					>
-						{webhookUrl || "—"}
+						{displayUrl}
 					</Text>
 					<Box
 						as="button"
@@ -157,64 +187,59 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 				</Flex>
 			</Flex>
 
-			{/* Pause, Clear, Theme toggle - compact right section */}
-			<Flex align="center" gap={2} flexShrink={0} w={{ base: "auto", md: "280px" }} h={10}>
-				<Flex
-					bg="var(--wl-bg)"
-					p={1}
+			{/* Pause, Clear, Theme toggle, Options - right section (each button separate) */}
+			<Flex align="center" gap="var(--wl-fluid-sm)" flexShrink={0} w={{ base: "auto", md: "min(280px, 24vw)" }} minW={0} h={10}>
+				<Box
+					as="button"
+					display="flex"
+					alignItems="center"
+					gap={1.5}
+					px={3}
+					py={1.5}
 					rounded="lg"
+					bg={isPaused ? "var(--wl-bg-muted)" : "var(--wl-bg)"}
 					borderWidth="1px"
 					borderColor="var(--wl-border-subtle)"
-					gap={0}
-					align="center"
-					h={9}
+					shadow={isPaused ? "none" : "sm"}
+					fontSize="13px"
+					fontWeight={500}
+					color={isPaused ? "var(--wl-text-subtle)" : "var(--wl-text)"}
+					onClick={togglePaused}
+					aria-label={isPaused ? "Resume" : "Pause"}
+					_hover={{ bg: "var(--wl-bg-muted)" }}
 				>
-					<Box
-						as="button"
-						display="flex"
-						alignItems="center"
-						gap={1.5}
-						px={3}
-						py={1.5}
-						rounded="md"
-						bg={isPaused ? "var(--wl-bg-muted)" : "var(--wl-bg-subtle)"}
-						shadow={isPaused ? "none" : "sm"}
-						fontSize="13px"
-						fontWeight={500}
-						color={isPaused ? "var(--wl-text-subtle)" : "var(--wl-text)"}
-						onClick={togglePaused}
-						aria-label={isPaused ? "Resume" : "Pause"}
-					>
-						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-lg)" }}>
-							pause
-						</span>
-						<Text as="span" display={{ base: "none", md: "inline" }}>
-							Pause
-						</Text>
-					</Box>
-					<Box
-						as="button"
-						display="flex"
-						alignItems="center"
-						gap={1.5}
-						px={3}
-						py={1.5}
-						rounded="md"
-						fontSize="13px"
-						fontWeight={500}
-						color="var(--wl-text-subtle)"
-						_hover={{ color: "var(--wl-text)" }}
-						onClick={onClear}
-						aria-label="Clear"
-					>
-						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-lg)" }}>
-							delete_sweep
-						</span>
-						<Text as="span" display={{ base: "none", md: "inline" }}>
-							Clear
-						</Text>
-					</Box>
-				</Flex>
+					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-lg)" }}>
+						pause
+					</span>
+					<Text as="span" display={{ base: "none", md: "inline" }}>
+						Pause
+					</Text>
+				</Box>
+				<Box
+					as="button"
+					display="flex"
+					alignItems="center"
+					gap={1.5}
+					px={3}
+					py={1.5}
+					rounded="lg"
+					bg="var(--wl-bg)"
+					borderWidth="1px"
+					borderColor="var(--wl-border-subtle)"
+					fontSize="13px"
+					fontWeight={500}
+					color="var(--wl-text-subtle)"
+					_hover={{ color: "var(--wl-text)", bg: "var(--wl-bg-muted)" }}
+					onClick={onClear}
+					aria-label="Clear"
+				>
+					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-lg)" }}>
+						delete_sweep
+					</span>
+					<Text as="span" display={{ base: "none", md: "inline" }}>
+						Clear
+					</Text>
+				</Box>
 				<Box
 					as="button"
 					w={9}

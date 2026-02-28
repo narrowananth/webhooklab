@@ -97,8 +97,9 @@ export function RequestListPanel({
 
 	return (
 		<Box
-			w={{ base: "full", lg: 340 }}
-			minW={{ lg: 340 }}
+			w={{ base: "full", lg: "var(--wl-sidebar-width)" }}
+			minW={{ base: 0, lg: "var(--wl-sidebar-min-width)" }}
+			maxW={{ lg: "var(--wl-sidebar-max-width)" }}
 			flexShrink={0}
 			minH={0}
 			borderRightWidth={{ lg: "1px" }}
@@ -109,7 +110,7 @@ export function RequestListPanel({
 			overflow="hidden"
 		>
 			{/* Search + Filters */}
-			<Box p={4} borderBottomWidth="1px" borderColor="var(--wl-border)" flexShrink={0}>
+			<Box p="var(--wl-fluid-px)" borderBottomWidth="1px" borderColor="var(--wl-border)" flexShrink={0}>
 				<Flex position="relative" mb={3}>
 					<Box
 						position="absolute"
@@ -391,10 +392,10 @@ export function RequestListPanel({
 			</Box>
 
 			{/* Request list - only scrollable area */}
-			<Box flex={1} minH={0} overflowY="auto" px={2} py={2} css={{ "&::-webkit-scrollbar": { width: 6 } }}>
+			<Box flex={1} minH={0} overflowY="auto" px="var(--wl-fluid-sm)" py="var(--wl-fluid-sm)" css={{ "&::-webkit-scrollbar": { width: 6 } }}>
 				{filteredEvents.length === 0 ? (
-					<Box p={8} textAlign="center">
-						<Text fontSize="sm" color="var(--wl-text-subtle)">
+					<Box p="var(--wl-fluid-xl)" textAlign="center">
+						<Text fontSize="var(--wl-fluid-font-sm)" color="var(--wl-text-subtle)">
 							No requests yet
 						</Text>
 					</Box>
@@ -481,8 +482,8 @@ export function RequestListPanel({
 			{/* Page size dropdown + pagination bar - always visible */}
 			{onPageSizeChange && (
 				<Flex
-					px={4}
-					py={3}
+					px="var(--wl-fluid-px)"
+					py="var(--wl-fluid-py)"
 					borderTopWidth="1px"
 					borderColor="var(--wl-border-subtle)"
 					align="center"

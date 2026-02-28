@@ -173,6 +173,7 @@ export function Inspect() {
 			display="flex"
 			flexDir="column"
 			overflow="hidden"
+			minW={0}
 			bg="var(--wl-bg)"
 			color="var(--wl-text)"
 		>
@@ -183,7 +184,7 @@ export function Inspect() {
 				onClear={handleClear}
 			/>
 
-			<Box flex={1} minH={0} display="flex" overflow="hidden" position="relative" pb={{ md: 10 }}>
+			<Box flex={1} minH={0} minW={0} display="flex" overflow="hidden" position="relative" pb={{ md: 10 }}>
 				<RequestListPanel
 					events={displayEvents}
 					onSelectEvent={handleSelectEvent}
