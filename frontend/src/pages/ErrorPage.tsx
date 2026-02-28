@@ -17,7 +17,7 @@ export function ErrorPage() {
 			p={8}
 			gap={4}
 		>
-			<Text color="red.400">{error}</Text>
+			<Text color="var(--wl-error)">{error}</Text>
 			<Text color="var(--wl-text-muted)" fontSize="sm">
 				Make sure the backend is running.
 			</Text>

@@ -1,3 +1,11 @@
+/** Convert API webhook URL to full URL (handles API returning path like * + /webhook/xxx when FRONTEND_URL is *) */
+export function toFullWebhookUrl(url: string): string {
+	if (!url) return "";
+	if (url.startsWith("http://") || url.startsWith("https://")) return url;
+	const path = url.replace(/^\*\/?/, "/");
+	return `${window.location.origin}${path.startsWith("/") ? "" : "/"}${path}`;
+}
+
 /** Extract path from full URL for display (e.g. /api/v1/payments/webh...) */
 export function getPathFromUrl(url: string): string {
 	try {

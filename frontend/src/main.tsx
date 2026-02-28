@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
-import { ErrorBoundary } from "./components/ErrorBoundary.tsx";
 import "./index.css";
 
 /** TanStack Query client - handles API caching and background refetch */
@@ -20,12 +19,10 @@ const rootEl = document.getElementById("root");
 if (rootEl)
 	createRoot(rootEl).render(
 		<StrictMode>
-			<ErrorBoundary>
-				<QueryClientProvider client={queryClient}>
-					<ChakraProvider value={defaultSystem}>
-						<App />
-					</ChakraProvider>
-				</QueryClientProvider>
-			</ErrorBoundary>
+			<QueryClientProvider client={queryClient}>
+				<ChakraProvider value={defaultSystem}>
+					<App />
+				</ChakraProvider>
+			</QueryClientProvider>
 		</StrictMode>,
 	);

@@ -4,7 +4,7 @@
  */
 import { Box, Button, Flex, Input } from "@chakra-ui/react";
 import { useState } from "react";
-import { METHOD_COLORS } from "../../constants";
+import { METHOD_BADGE_STYLES, BADGE_STYLE_GRAY } from "../../constants";
 import { useInspectStore } from "../../store/useInspectStore";
 
 const METHODS = ["All", "GET", "POST", "PUT", "DELETE"];
@@ -31,17 +31,23 @@ export function MobileFilterBar() {
 			display={{ base: "block", lg: "none" }}
 		>
 			<Flex gap={2} flexWrap="wrap" mb={2}>
-				{METHODS.map((m) => (
-					<Button
-						key={m}
-						size="sm"
-						variant={methodFilter === m || (m === "All" && !methodFilter) ? "solid" : "outline"}
-						colorPalette={m === "All" ? "gray" : METHOD_COLORS[m] ?? "gray"}
-						onClick={() => setMethodFilter(m === "All" ? "" : m)}
-					>
-						{m} ▼
-					</Button>
-				))}
+				{METHODS.map((m) => {
+					const style = m === "All" ? BADGE_STYLE_GRAY : (METHOD_BADGE_STYLES[m] ?? BADGE_STYLE_GRAY);
+					const isSelected = methodFilter === m || (m === "All" && !methodFilter);
+					return (
+						<Button
+							key={m}
+							size="sm"
+							variant={isSelected ? "solid" : "outline"}
+							bg={isSelected ? style.bg : undefined}
+							color={isSelected ? style.fg : undefined}
+							borderColor={!isSelected ? style.fg : undefined}
+							onClick={() => setMethodFilter(m === "All" ? "" : m)}
+						>
+							{m} ▼
+						</Button>
+					);
+				})}
 			</Flex>
 			<Flex gap={2} flexWrap="wrap">
 				<Button

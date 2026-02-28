@@ -1,32 +1,25 @@
 import type { Request, Response } from "express";
-import { or, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "../db.js";
 import { requests, webhooks } from "../db/schema.js";
 import { broadcastToWebhook } from "../websocket/server.js";
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 export async function captureWebhook(
 	req: Request,
 	res: Response,
-	slugOrId: string,
+	webhookId: string,
 ): Promise<void> {
 	try {
-		const isUuid = UUID_REGEX.test(slugOrId);
 		const [webhook] = await db
 			.select()
 			.from(webhooks)
-			.where(
-				isUuid ? eq(webhooks.webhookId, slugOrId) : eq(webhooks.slug, slugOrId),
-			)
+			.where(eq(webhooks.webhookId, webhookId))
 			.limit(1);
 
 		if (!webhook) {
 			res.status(404).json({ error: "Webhook inbox not found" });
 			return;
 		}
-
-		const webhookId = webhook.webhookId;
 
 		const headers: Record<string, string> = {};
 		for (const [k, v] of Object.entries(req.headers)) {

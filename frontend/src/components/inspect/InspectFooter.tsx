@@ -1,13 +1,41 @@
 /**
- * Footer: WebSocket status, bandwidth, Docs, API Reference, version.
+ * Footer: WebSocket status, request count, total size, network signal,
+ * session bandwidth, Docs link, product version.
  */
 import { Box, Flex, Text } from "@chakra-ui/react";
+import { useNetworkStatus } from "../../hooks/useNetworkStatus";
+import pkg from "../../../package.json";
 
-interface InspectFooterProps {
-	connected: boolean;
+const APP_VERSION = (pkg as { version?: string }).version ?? "1.0.0";
+
+function formatBytes(bytes: number): string {
+	if (bytes === 0) return "0 B";
+	if (bytes < 1024) return `${bytes} B`;
+	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function InspectFooter({ connected }: InspectFooterProps) {
+interface InspectFooterProps {
+	webhookId: string | null;
+	requestCount: number;
+	totalSizeBytes: number;
+	statsLoading?: boolean;
+}
+
+export function InspectFooter({
+	webhookId,
+	requestCount,
+	totalSizeBytes,
+	statsLoading = false,
+}: InspectFooterProps) {
+	const { online, effectiveType } = useNetworkStatus();
+
+	const networkLabel = online
+		? effectiveType
+			? `${effectiveType.toUpperCase()}`
+			: "Online"
+		: "Offline";
+
 	return (
 		<Box
 			position="fixed"
@@ -22,23 +50,42 @@ export function InspectFooter({ connected }: InspectFooterProps) {
 			py={2}
 			display={{ base: "none", md: "block" }}
 		>
-			<Flex justify="space-between" align="center" fontSize="xs" color="var(--wl-text-subtle)">
-				<Flex align="center" gap={4}>
+			<Flex
+				justify="space-between"
+				align="center"
+				fontSize="xs"
+				color="var(--wl-text-subtle)"
+				gap={4}
+				flexWrap="wrap"
+			>
+				<Flex align="center" gap={4} flexWrap="wrap">
+					{webhookId && (
+						<>
+							<Text>
+								{statsLoading
+									? "…"
+									: `${requestCount} request${requestCount === 1 ? "" : "s"}`}
+							</Text>
+							<Text>
+								{statsLoading ? "…" : formatBytes(totalSizeBytes)}
+							</Text>
+						</>
+					)}
 					<Flex align="center" gap={2}>
 						<Box
 							w={2}
 							h={2}
 							rounded="full"
-							bg={connected ? "green.500" : "red.500"}
+							bg={online ? "var(--wl-success)" : "var(--wl-error)"}
 						/>
-						<Text>WebSocket {connected ? "Active" : "Inactive"}</Text>
+						<Text>{networkLabel}</Text>
 					</Flex>
-					<Text>Total bandwidth: 0 KB</Text>
 				</Flex>
 				<Flex align="center" gap={4}>
-					<a href="#" style={{ color: "var(--wl-accent)" }}>Docs</a>
-					<a href="#" style={{ color: "var(--wl-accent)" }}>API Reference</a>
-					<Text>v1.0.0</Text>
+					<a href="#" style={{ color: "var(--wl-accent)" }}>
+						Docs
+					</a>
+					<Text>v{APP_VERSION}</Text>
 				</Flex>
 			</Flex>
 		</Box>

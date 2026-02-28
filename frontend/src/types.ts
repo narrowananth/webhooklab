@@ -22,4 +22,14 @@ export interface EventsResponse {
 	events: WebhookEvent[];
 	nextPageToken: string | null;
 	total: number;
+	pagination?: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export interface SearchEventsParams {
+	search?: string;
+	method?: string;
+	ip?: string;
+	requestId?: number;
+	page?: number;
+	limit?: number;
 }

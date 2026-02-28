@@ -1,9 +1,7 @@
 import { Box } from "@chakra-ui/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Landing } from "./pages/Landing";
-import { CustomUrl } from "./pages/CustomUrl";
+import { Home } from "./pages/Home";
 import { Inspect } from "./pages/Inspect";
-import { ErrorPage } from "./pages/ErrorPage";
 import { useThemeEffect } from "./hooks/useThemeEffect";
 
 /** Applies theme from Zustand to document on mount and when theme changes */
@@ -18,10 +16,8 @@ function App() {
 			<ThemeSync />
 			<Box minH="100vh" bg="var(--wl-bg)" color="var(--wl-text)">
 				<Routes>
-					<Route path="/" element={<Landing />} />
-					<Route path="/w/:slug" element={<CustomUrl />} />
+					<Route path="/" element={<Home />} />
 					<Route path="/inspect/:webhookId" element={<Inspect />} />
-					<Route path="/error" element={<ErrorPage />} />
 					<Route path="*" element={<Navigate to="/" replace />} />
 				</Routes>
 			</Box>

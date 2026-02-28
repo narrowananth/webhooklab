@@ -9,8 +9,25 @@ import { config } from "../../config.js";
 const router: Router = createRouter();
 
 /** Webhook URLs use frontend origin so we never expose backend URL */
-function getWebhookBaseUrl(): string {
-	return config.FRONTEND_URL.replace(/\/$/, "");
+function getWebhookBaseUrl(req?: { headers: { origin?: string; referer?: string }; protocol?: string; get?: (name: string) => string }): string {
+	const base = config.FRONTEND_URL.replace(/\/$/, "");
+	if (base !== "*" && base !== "") return base;
+	// When FRONTEND_URL is "*", use request origin (e.g. http://localhost:5173)
+	if (req) {
+		const origin = req.headers.origin ?? req.headers.referer;
+		if (origin) {
+			try {
+				const u = new URL(origin);
+				return u.origin;
+			} catch {
+				/* ignore */
+			}
+		}
+		const proto = req.get?.("x-forwarded-proto") ?? req.protocol ?? "http";
+		const host = req.get?.("x-forwarded-host") ?? req.get?.("host") ?? "localhost:5173";
+		return `${proto}://${host}`;
+	}
+	return "http://localhost:5173";
 }
 
 router.post("/create", async (req, res) => {
@@ -29,7 +46,7 @@ router.post("/create", async (req, res) => {
 		});
 
 		const path = cleanSlug ? `webhook/${cleanSlug}` : `webhook/${webhookId}`;
-		const url = `${getWebhookBaseUrl()}/${path}`;
+		const url = `${getWebhookBaseUrl(req)}/${path}`;
 		res.status(201).json({ id: webhookId, slug: cleanSlug, url, name: name ?? null });
 	} catch (err) {
 		console.error("[webhooks] create error:", err);
@@ -52,7 +69,7 @@ router.get("/by-slug/:slug", async (req, res) => {
 		}
 
 		const path = row.slug ? `webhook/${row.slug}` : `webhook/${row.webhookId}`;
-		const url = `${getWebhookBaseUrl()}/${path}`;
+		const url = `${getWebhookBaseUrl(req)}/${path}`;
 		res.json({
 			id: row.webhookId,
 			slug: row.slug,
@@ -81,7 +98,7 @@ router.get("/:id", async (req, res) => {
 		}
 
 		const path = row.slug ? `webhook/${row.slug}` : `webhook/${row.webhookId}`;
-		const url = `${getWebhookBaseUrl()}/${path}`;
+		const url = `${getWebhookBaseUrl(req)}/${path}`;
 		res.json({
 			id: row.webhookId,
 			slug: row.slug,

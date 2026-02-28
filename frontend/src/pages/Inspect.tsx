@@ -1,73 +1,128 @@
 /**
- * Inspect page: responsive layout for mobile and desktop.
- * Mobile: header, filter bar, activity list, empty state/detail, bottom nav.
- * Desktop: header, sidebar (filters), main content (list + detail), footer.
- *
- * TanStack Query + WebSocket for data. Zustand for UI state.
+ * Inspect page: header, left request list panel, right inspector, footer.
+ * RequestListPanel has search + Method/Status/IP/Request ID filters. Inspector shows selected request.
+ * When filters active: server-side search. Otherwise: live WebSocket events.
  */
 import { Box, Spinner, Text } from "@chakra-ui/react";
-import { useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { InspectHeader } from "../components/inspect/InspectHeader";
-import { InspectSidebar } from "../components/inspect/InspectSidebar";
+import { RequestListPanel } from "../components/inspect/RequestListPanel";
 import { InspectMainContent } from "../components/inspect/InspectMainContent";
-import { MobileFilterBar } from "../components/inspect/MobileFilterBar";
-import { BottomNav } from "../components/inspect/BottomNav";
 import { InspectFooter } from "../components/inspect/InspectFooter";
-import { useWebhookQuery, useEventsQuery, useClearEventsMutation } from "../hooks/useWebhookQueries";
+import {
+	useWebhookQuery,
+	useEventsQuery,
+	useSearchEventsQuery,
+	useEventStatsQuery,
+	useClearEventsMutation,
+} from "../hooks/useWebhookQueries";
 import { useWebSocket } from "../hooks/useWebSocket";
 import { useInspectStore } from "../store/useInspectStore";
+import { toFullWebhookUrl } from "../utils/truncateUrl";
+import type { WebhookEvent } from "../types";
 
 export function Inspect() {
 	const { webhookId } = useParams<{ webhookId: string }>();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const {
 		setSelectedEvent,
 		resetFilters,
 		searchFilter,
-		setSearchFilter,
 		methodFilter,
 		ipFilter,
 		requestIdFilter,
+		pageSize,
+		setPageSize,
 	} = useInspectStore();
+	const [searchPage, setSearchPage] = useState(1);
 
 	const { data: webhook, isLoading: webhookLoading } = useWebhookQuery(webhookId ?? undefined);
-	const { data: eventsData, isLoading: eventsLoading } = useEventsQuery(webhookId ?? undefined);
+	const { data: eventsData, isLoading: eventsLoading } = useEventsQuery(
+		webhookId ?? undefined,
+		1,
+		pageSize,
+	);
 	const clearMutation = useClearEventsMutation(webhookId ?? undefined);
-	const { events: wsEvents, setEvents, connected } = useWebSocket(webhookId ?? null);
+	const { events: wsEvents, setEvents, connected } =
+		useWebSocket(webhookId ?? null);
+	const { data: stats, isLoading: statsLoading } = useEventStatsQuery(
+		webhookId ?? undefined,
+	);
+
+	const hasFilters = !!(
+		searchFilter?.trim() ||
+		(methodFilter && methodFilter !== "All") ||
+		ipFilter?.trim() ||
+		requestIdFilter?.trim()
+	);
+
+	const searchQueryParams = {
+		search: searchFilter?.trim() || undefined,
+		method: methodFilter && methodFilter !== "All" ? methodFilter : undefined,
+		ip: ipFilter?.trim() || undefined,
+		requestId: requestIdFilter ? Number.parseInt(requestIdFilter, 10) : undefined,
+		page: searchPage,
+		limit: pageSize,
+	};
+
+	const { data: searchData, isLoading: searchLoading } = useSearchEventsQuery(
+		webhookId ?? undefined,
+		searchQueryParams,
+		hasFilters,
+	);
 
 	useEffect(() => {
 		if (eventsData?.events) setEvents(eventsData.events);
 	}, [eventsData?.events, setEvents]);
 
-	const filteredEvents = useMemo(() => {
-		return wsEvents.filter((e) => {
-			if (searchFilter) {
-				const q = searchFilter.toLowerCase();
-				const bodyStr = e.rawBody ?? JSON.stringify(e.body ?? {});
-				const match =
-					e.method.toLowerCase().includes(q) ||
-					bodyStr.toLowerCase().includes(q) ||
-					JSON.stringify(e.headers ?? {}).toLowerCase().includes(q) ||
-					JSON.stringify(e.queryParams ?? {}).toLowerCase().includes(q);
-				if (!match) return false;
-			}
-			if (methodFilter && e.method !== methodFilter) return false;
-			if (ipFilter && (!e.ip || !e.ip.includes(ipFilter))) return false;
-			if (requestIdFilter) {
-				const id = String(e.id);
-				if (!id.includes(requestIdFilter.replace("#", ""))) return false;
-			}
-			return true;
-		});
-	}, [wsEvents, searchFilter, methodFilter, ipFilter, requestIdFilter]);
+	useEffect(() => {
+		if (hasFilters) setSearchPage(1);
+	}, [searchFilter, methodFilter, ipFilter, requestIdFilter]);
 
-	const handleCopy = () => navigator.clipboard.writeText(webhook?.url ?? "");
+	useEffect(() => {
+		setSearchPage(1);
+	}, [pageSize]);
+
+	const displayEvents = hasFilters ? (searchData?.events ?? []) : wsEvents;
+
+	const handleSelectEvent = (event: WebhookEvent) => {
+		setSelectedEvent(event);
+		setSearchParams((prev) => {
+			prev.set("req", String(event.id));
+			return prev;
+		});
+	};
+
+	useEffect(() => {
+		const reqId = searchParams.get("req");
+		if (reqId && displayEvents.length > 0) {
+			const match = displayEvents.find((e) => String(e.id) === reqId);
+			if (match) setSelectedEvent(match);
+		}
+	}, [searchParams, displayEvents, setSelectedEvent]);
+	const pagination = hasFilters && searchData?.pagination
+		? {
+				page: searchData.pagination.page,
+				totalPages: searchData.pagination.totalPages,
+				total: searchData.pagination.total,
+				onPrev: () => setSearchPage((p) => Math.max(1, p - 1)),
+				onNext: () =>
+					setSearchPage((p) =>
+						Math.min(searchData.pagination!.totalPages, p + 1),
+					),
+			}
+		: undefined;
+
+	const fullWebhookUrl = toFullWebhookUrl(webhook?.url ?? "");
+	const handleCopy = () => navigator.clipboard.writeText(fullWebhookUrl);
 	const handleClear = async () => {
 		try {
 			await clearMutation.mutateAsync();
 			setSelectedEvent(null);
 			resetFilters();
 			setEvents([]);
+			setSearchPage(1);
 		} catch {
 			// ignore
 		}
@@ -76,12 +131,16 @@ export function Inspect() {
 	if (!webhookId) {
 		return (
 			<Box p={8} color="var(--wl-text)">
-				<Text color="red.400">Missing webhook ID</Text>
+				<Text color="var(--wl-error)">Missing webhook ID</Text>
 			</Box>
 		);
 	}
 
-	if (webhookLoading || (eventsLoading && !eventsData)) {
+	if (
+		webhookLoading ||
+		(eventsLoading && !eventsData && !hasFilters) ||
+		(hasFilters && searchLoading && !searchData)
+	) {
 		return (
 			<Box
 				minH="100vh"
@@ -97,39 +156,42 @@ export function Inspect() {
 
 	return (
 		<Box
-			minH="100vh"
+			position="fixed"
+			inset={0}
 			display="flex"
 			flexDir="column"
+			overflow="hidden"
 			bg="var(--wl-bg)"
 			color="var(--wl-text)"
 		>
 			<InspectHeader
+				webhookUrl={fullWebhookUrl}
 				connected={connected}
 				onCopy={handleCopy}
 				onClear={handleClear}
-				searchValue={searchFilter}
-				onSearchChange={setSearchFilter}
 			/>
 
-			<MobileFilterBar />
-
-			<Box flex={1} display="flex" overflow="hidden">
-				<InspectSidebar
-					webhookUrl={webhook?.url ?? ""}
-					events={wsEvents}
-					onCopyUrl={handleCopy}
-					hasSlug={!!webhook?.slug}
+			<Box flex={1} minH={0} display="flex" overflow="hidden" position="relative" pb={{ md: 10 }}>
+				<RequestListPanel
+					events={displayEvents}
+					onSelectEvent={handleSelectEvent}
+					filterMode={hasFilters}
+					pagination={pagination}
+					pageSize={pageSize}
+					onPageSizeChange={setPageSize}
 				/>
-				<InspectMainContent
-					events={filteredEvents}
-					onSelectEvent={(e) => setSelectedEvent(e)}
-					onCopy={handleCopy}
-					onClear={handleClear}
-				/>
+				<InspectMainContent events={displayEvents} />
 			</Box>
 
-			<InspectFooter connected={connected} />
-			<BottomNav />
+			<InspectFooter
+				webhookId={webhookId}
+				requestCount={
+					stats?.count ??
+					(hasFilters ? pagination?.total ?? 0 : displayEvents.length)
+				}
+				totalSizeBytes={stats?.totalSize ?? 0}
+				statsLoading={statsLoading}
+			/>
 		</Box>
 	);
 }

@@ -28,6 +28,8 @@ interface InspectState {
 	// Filter values for the requests list
 	methodFilter: string;
 	setMethodFilter: (v: string) => void;
+	statusFilter: string;
+	setStatusFilter: (v: string) => void;
 	ipFilter: string;
 	setIpFilter: (v: string) => void;
 	requestIdFilter: string;
@@ -44,16 +46,25 @@ interface InspectState {
 	setIsPaused: (paused: boolean) => void;
 	togglePaused: () => void;
 
+	// Auto-select newest request when it arrives (persisted)
+	autoSelectNew: boolean;
+	setAutoSelectNew: (v: boolean) => void;
+	toggleAutoSelectNew: () => void;
+
 	// Reset filters and selection (e.g. for "Clear" button)
 	resetFilters: () => void;
 
-	// Mobile bottom nav - active tab
-	activeNav: "requests" | "endpoints" | "metrics" | "settings";
-	setActiveNav: (nav: "requests" | "endpoints" | "metrics" | "settings") => void;
+	// Pagination page size (25, 50, 75, 100)
+	pageSize: number;
+	setPageSize: (n: number) => void;
 
 	// Mobile: sidebar open/closed (filters drawer)
 	sidebarOpen: boolean;
 	setSidebarOpen: (open: boolean) => void;
+
+	// Mobile bottom nav: requests | endpoints | metrics | settings
+	activeNav: "requests" | "endpoints" | "metrics" | "settings";
+	setActiveNav: (nav: "requests" | "endpoints" | "metrics" | "settings") => void;
 }
 
 export const useInspectStore = create<InspectState>()(
@@ -69,6 +80,8 @@ export const useInspectStore = create<InspectState>()(
 
 			methodFilter: "",
 			setMethodFilter: (methodFilter) => set({ methodFilter }),
+			statusFilter: "2xx",
+			setStatusFilter: (statusFilter) => set({ statusFilter }),
 			ipFilter: "",
 			setIpFilter: (ipFilter) => set({ ipFilter }),
 			requestIdFilter: "",
@@ -83,24 +96,32 @@ export const useInspectStore = create<InspectState>()(
 			setIsPaused: (isPaused) => set({ isPaused }),
 			togglePaused: () => set((s) => ({ isPaused: !s.isPaused })),
 
+			autoSelectNew: true,
+			setAutoSelectNew: (autoSelectNew) => set({ autoSelectNew }),
+			toggleAutoSelectNew: () => set((s) => ({ autoSelectNew: !s.autoSelectNew })),
+
 			resetFilters: () =>
 				set({
 					selectedEvent: null,
 					methodFilter: "",
+					statusFilter: "2xx",
 					ipFilter: "",
 					requestIdFilter: "",
 					searchFilter: "",
 				}),
 
-			activeNav: "requests",
-			setActiveNav: (activeNav) => set({ activeNav }),
+			pageSize: 25,
+			setPageSize: (pageSize) => set({ pageSize }),
 
 			sidebarOpen: false,
 			setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
+
+			activeNav: "requests",
+			setActiveNav: (activeNav) => set({ activeNav }),
 		}),
 		{
 			name: "webhooklab-inspect",
-			partialize: (s) => ({ theme: s.theme }),
+			partialize: (s) => ({ theme: s.theme, autoSelectNew: s.autoSelectNew }),
 		},
 	),
 );

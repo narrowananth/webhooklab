@@ -1,9 +1,8 @@
-/// <reference types="node" />
 import { defineConfig } from "drizzle-kit";
 
 const databaseUrl =
 	process.env.DATABASE_URL ??
-	`postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`;
+	`postgresql://${process.env.POSTGRES_USER ?? "admin"}:${process.env.POSTGRES_PASSWORD ?? "admin"}@${process.env.POSTGRES_HOST ?? "localhost"}:${process.env.POSTGRES_PORT ?? "5432"}/${process.env.POSTGRES_DB ?? "webhook"}`;
 
 export default defineConfig({
 	out: "./drizzle",

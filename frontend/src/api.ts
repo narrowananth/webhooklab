@@ -2,7 +2,12 @@
  * WebhookLab API client.
  * All endpoints used by TanStack Query hooks.
  */
-import type { EventsResponse, WebhookEvent, WebhookInbox } from "./types";
+import type {
+	EventsResponse,
+	SearchEventsParams,
+	WebhookEvent,
+	WebhookInbox,
+} from "./types";
 
 const API = "/api";
 
@@ -33,9 +38,25 @@ export async function getWebhookBySlug(slug: string): Promise<WebhookInbox> {
 export async function getEvents(
 	inboxId: string,
 	page = 1,
-	limit = 50,
+	limit = 25,
 ): Promise<EventsResponse> {
 	const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+	const res = await fetch(`${API}/events/${inboxId}?${params}`);
+	if (!res.ok) throw new Error(await res.text());
+	return res.json();
+}
+
+export async function searchEvents(
+	inboxId: string,
+	opts: SearchEventsParams,
+): Promise<EventsResponse> {
+	const params = new URLSearchParams();
+	if (opts.search) params.set("search", opts.search);
+	if (opts.method) params.set("method", opts.method);
+	if (opts.ip) params.set("ip", opts.ip);
+	if (opts.requestId != null) params.set("requestId", String(opts.requestId));
+	params.set("page", String(opts.page ?? 1));
+	params.set("limit", String(opts.limit ?? 25));
 	const res = await fetch(`${API}/events/${inboxId}?${params}`);
 	if (!res.ok) throw new Error(await res.text());
 	return res.json();
@@ -46,6 +67,14 @@ export async function getEvent(
 	eventId: number,
 ): Promise<WebhookEvent> {
 	const res = await fetch(`${API}/events/${inboxId}/${eventId}`);
+	if (!res.ok) throw new Error(await res.text());
+	return res.json();
+}
+
+export async function getEventStats(
+	inboxId: string,
+): Promise<{ count: number; totalSize: number }> {
+	const res = await fetch(`${API}/events/${inboxId}/stats`);
 	if (!res.ok) throw new Error(await res.text());
 	return res.json();
 }

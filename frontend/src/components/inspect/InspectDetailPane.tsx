@@ -1,22 +1,26 @@
 /**
- * Right detail pane: tabs (Pretty, Raw, Headers, Query),
- * Share/Copy Body buttons, and the content for the selected request.
- * Includes Replay to URL at the bottom.
- *
- * Uses Zustand for: selectedEvent, activeDetailTab, setActiveDetailTab.
+ * Inspector detail pane: header bar (method, path, Copy-as/Download),
+ * Pretty/Raw/Headers/Query tabs, Share/Copy Body, syntax-highlighted JSON, footer with meta.
  */
-import { Badge, Box, Button, Flex, Input, Text } from "@chakra-ui/react";
+import { Badge, Box, Button, Flex, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import { METHOD_COLORS } from "../../constants";
 import { useInspectStore } from "../../store/useInspectStore";
-import { replayEvent } from "../../api";
+import { getPathFromUrl } from "../../utils/truncateUrl";
+import { formatRelativeTime } from "../../utils/relativeTime";
+import { highlightSearch } from "../../utils/highlightSearch";
+import { toAxios, toCurl, toJava, toNodeFetch } from "../../utils/requestToCode";
+import { JsonViewer } from "./JsonViewer";
+import { formatSize, getRequestSizeBytes } from "../../utils/requestSize";
+import type { WebhookEvent } from "../../types";
 
 export function InspectDetailPane() {
-	const [targetUrl, setTargetUrl] = useState("");
-	const [replayStatus, setReplayStatus] = useState<string | null>(null);
-	const [replaying, setReplaying] = useState(false);
-	const { activeDetailTab, setActiveDetailTab, selectedEvent: event } =
+	const { activeDetailTab, setActiveDetailTab, selectedEvent: event, searchFilter } =
 		useInspectStore();
+	const [shareCopied, setShareCopied] = useState(false);
+	const [bodyCopied, setBodyCopied] = useState(false);
+	const [copyAsOpen, setCopyAsOpen] = useState(false);
+	const [copyAsCopied, setCopyAsCopied] = useState<string | null>(null);
 
 	if (!event) {
 		return (
@@ -33,239 +37,474 @@ export function InspectDetailPane() {
 		);
 	}
 
-	const bodyDisplay =
-		event.rawBody ?? (event.body ? JSON.stringify(event.body, null, 2) : "(empty)");
-	const time = new Date(event.timestamp).toLocaleTimeString(undefined, {
-		hour: "2-digit",
-		minute: "2-digit",
-		second: "2-digit",
-	});
+	const requestSizeBytes = getRequestSizeBytes(event);
+	const headerCount = Object.keys(event.headers ?? {}).length;
+	const path = getPathFromUrl(event.url);
+	const receivedAgo = formatRelativeTime(event.timestamp);
 
-	const copyBody = () => {
-		const text = event.rawBody ?? (event.body ? JSON.stringify(event.body) : "");
-		navigator.clipboard.writeText(text);
+	const handleDownload = () => {
+		const text =
+			event.rawBody ?? (event.body ? JSON.stringify(event.body, null, 2) : "{}");
+		const blob = new Blob([text], { type: "application/json" });
+		const a = document.createElement("a");
+		a.href = URL.createObjectURL(blob);
+		a.download =
+			event.rawBody || event.body
+				? `webhook-${event.id}.json`
+				: `webhook-${event.id}-empty.json`;
+		a.click();
+		URL.revokeObjectURL(a.href);
 	};
 
-	async function handleReplay() {
-		if (!targetUrl.trim() || !event) return;
-		setReplaying(true);
-		setReplayStatus(null);
-		try {
-			const result = await replayEvent(event.id, targetUrl.trim());
-			setReplayStatus(
-				result.ok
-					? `✓ ${result.status} ${result.statusText}`
-					: `✗ ${result.status} ${result.statusText}`,
-			);
-		} catch (err) {
-			setReplayStatus(`Error: ${err instanceof Error ? err.message : "Failed"}`);
-		} finally {
-			setReplaying(false);
-		}
-	}
+	const COPY_AS_OPTIONS: { id: string; label: string; fn: (e: WebhookEvent) => string }[] = [
+		{ id: "curl", label: "cURL", fn: toCurl },
+		{ id: "fetch", label: "Node fetch", fn: toNodeFetch },
+		{ id: "axios", label: "Axios", fn: toAxios },
+		{ id: "java", label: "Java (OkHttp)", fn: toJava },
+	];
 
-	const tabs: { id: typeof activeDetailTab; label: string }[] = [
+	const handleCopyAs = async (opt: (typeof COPY_AS_OPTIONS)[0]) => {
+		const code = opt.fn(event);
+		try {
+			await navigator.clipboard.writeText(code);
+			setCopyAsCopied(opt.id);
+			setTimeout(() => setCopyAsCopied(null), 2000);
+			setCopyAsOpen(false);
+		} catch {
+			window.navigator.clipboard?.writeText(code);
+			setCopyAsCopied(opt.id);
+			setTimeout(() => setCopyAsCopied(null), 2000);
+			setCopyAsOpen(false);
+		}
+	};
+
+	const handleShare = async () => {
+		const url = new URL(window.location.href);
+		url.searchParams.set("req", String(event.id));
+		try {
+			await navigator.clipboard.writeText(url.toString());
+			setShareCopied(true);
+			setTimeout(() => setShareCopied(false), 2000);
+		} catch {
+			// fallback
+			window.navigator.clipboard?.writeText(url.toString());
+			setShareCopied(true);
+			setTimeout(() => setShareCopied(false), 2000);
+		}
+	};
+
+	const handleCopyBody = async () => {
+		const text = event.rawBody ?? (event.body ? JSON.stringify(event.body, null, 2) : "");
+		if (!text) return;
+		try {
+			await navigator.clipboard.writeText(text);
+			setBodyCopied(true);
+			setTimeout(() => setBodyCopied(false), 2000);
+		} catch {
+			window.navigator.clipboard?.writeText(text);
+			setBodyCopied(true);
+			setTimeout(() => setBodyCopied(false), 2000);
+		}
+	};
+
+	const tabs: { id: typeof activeDetailTab; label: string; badge?: number }[] = [
 		{ id: "pretty", label: "Pretty" },
 		{ id: "raw", label: "Raw" },
-		{ id: "headers", label: "Headers" },
+		{ id: "headers", label: "Headers", badge: headerCount },
 		{ id: "query", label: "Query" },
 	];
 
 	return (
 		<Box flex={1} display="flex" flexDir="column" overflow="hidden" bg="var(--wl-bg)">
-			{/* Tabs + Share / Copy Body */}
+			{/* Header: Method + Path, Forward, Download */}
 			<Flex
+				minH={14}
+				shrink={0}
 				align="center"
 				justify="space-between"
-				px={6}
-				py={4}
+				px={{ base: 4, md: 6 }}
+				py={{ base: 3, md: 0 }}
 				borderBottomWidth="1px"
 				borderColor="var(--wl-border-subtle)"
-				gap={4}
+				bg="var(--wl-bg-subtle)"
+				gap={{ base: 2, md: 4 }}
+				flexWrap="wrap"
 			>
-				<Flex gap={1}>
-					{tabs.map((tab) => (
-						<Button
-							key={tab.id}
-							size="sm"
-							variant={activeDetailTab === tab.id ? "solid" : "ghost"}
-							onClick={() => setActiveDetailTab(tab.id)}
-						>
-							{tab.label}
-						</Button>
-					))}
+				<Flex align="center" gap={2} minW={0} flex={1}>
+					<Badge
+						colorPalette={METHOD_COLORS[event.method] ?? "gray"}
+						size="sm"
+						fontFamily="mono"
+						px={2}
+						py={1}
+						flexShrink={0}
+					>
+						{event.method}
+					</Badge>
+					<Text
+						as="code"
+						fontSize={{ base: "xs", md: "sm" }}
+						fontWeight="medium"
+						color="var(--wl-text-muted)"
+						fontFamily="mono"
+						truncate
+					>
+						{path}
+					</Text>
 				</Flex>
-				<Flex gap={2}>
-					<Button size="sm" variant="ghost">
-						Share
-					</Button>
-					<Button size="sm" variant="outline" onClick={copyBody}>
-						Copy Body
-					</Button>
+				<Flex align="center" gap={1} flexShrink={0}>
+					<Box position="relative">
+						<Button
+							size="sm"
+							variant="ghost"
+							aria-label="Copy"
+							aria-expanded={copyAsOpen}
+							aria-haspopup="true"
+							gap={{ base: 0, md: 2 }}
+							px={{ base: 2, md: 3 }}
+							display={{ base: "none", lg: "flex" }}
+							onClick={() => setCopyAsOpen(!copyAsOpen)}
+						>
+							<span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+								content_copy
+							</span>
+							{copyAsCopied ? "Copied!" : "Copy"}
+						</Button>
+						{copyAsOpen && (
+							<>
+								<Box
+									position="fixed"
+									inset={0}
+									zIndex={10}
+									onClick={() => setCopyAsOpen(false)}
+								/>
+								<Box
+									position="absolute"
+									top="100%"
+									right={0}
+									mt={1}
+									zIndex={20}
+									bg="var(--wl-bg-subtle)"
+									borderWidth="1px"
+									borderColor="var(--wl-border-subtle)"
+									rounded="lg"
+									py={1}
+									shadow="lg"
+									minW={140}
+								>
+									{COPY_AS_OPTIONS.map((opt) => (
+										<Box
+											key={opt.id}
+											as="button"
+											w="full"
+											textAlign="left"
+											px={3}
+											py={2}
+											fontSize="sm"
+											_hover={{ bg: "var(--wl-bg-muted)" }}
+											onClick={() => handleCopyAs(opt)}
+										>
+											{opt.label}
+										</Box>
+									))}
+								</Box>
+							</>
+						)}
+					</Box>
+					<Box
+						w="1px"
+						h={4}
+						bg="var(--wl-border-subtle)"
+						mx={1}
+						display={{ base: "none", md: "block" }}
+					/>
+					<Box
+						as="button"
+						p={1.5}
+						rounded="md"
+						_hover={{ bg: "var(--wl-bg-muted)" }}
+						onClick={handleDownload}
+						aria-label="Download"
+					>
+						<span
+							className="material-symbols-outlined"
+							style={{ fontSize: 20, color: "var(--wl-text-subtle)" }}
+						>
+							download
+						</span>
+					</Box>
 				</Flex>
 			</Flex>
 
-			{/* Request summary */}
+			{/* Meta bar: #ID, IP, Time, Size, Content-Type */}
 			<Flex
-				align="center"
+				px={{ base: 4, md: 6 }}
+				py={2}
 				gap={4}
-				px={6}
-				py={3}
+				fontSize="xs"
+				color="var(--wl-text-subtle)"
 				bg="var(--wl-bg-subtle)"
 				borderBottomWidth="1px"
 				borderColor="var(--wl-border-subtle)"
+				flexWrap="wrap"
 			>
-				<Badge
-					colorPalette={METHOD_COLORS[event.method] ?? "gray"}
-					size="sm"
-					fontFamily="mono"
-				>
-					{event.method}
-				</Badge>
-				<Text fontSize="sm" fontFamily="mono" color="var(--wl-text-muted)">
+				<Text as="span" fontFamily="mono" fontWeight="semibold">
 					#{event.id}
 				</Text>
-				<Text fontSize="sm" fontFamily="mono" color="var(--wl-text-muted)">
+				<Flex align="center" gap={1}>
+					<span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+						public
+					</span>
 					{event.ip ?? "—"}
-				</Text>
-				<Text fontSize="sm" fontFamily="mono" color="var(--wl-text-muted)">
-					{time}
+				</Flex>
+				<Flex align="center" gap={1}>
+					<span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+						schedule
+					</span>
+					{formatRelativeTime(event.timestamp)}
+				</Flex>
+				<Flex align="center" gap={1}>
+					<span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+						data_object
+					</span>
+					{formatSize(requestSizeBytes)}
+				</Flex>
+				<Text as="span" fontFamily="mono" truncate maxW="200px">
+					{Object.entries(event.headers ?? {}).find(
+						([k]) => k.toLowerCase() === "content-type",
+					)?.[1] ?? "—"}
 				</Text>
 			</Flex>
 
-			{/* Content */}
-			<Box flex={1} overflow="auto" p={6}>
-				{activeDetailTab === "pretty" && (
+			{/* Tabs + Share/Copy Body */}
+			<Flex
+				px={{ base: 4, md: 6 }}
+				gap={{ base: 6, md: 8 }}
+				borderBottomWidth="1px"
+				borderColor="var(--wl-border-subtle)"
+				bg="var(--wl-bg-subtle)"
+				overflowX="auto"
+				align="center"
+				css={{ "&::-webkit-scrollbar": { height: 4 } }}
+			>
+				{tabs.map((tab) => (
 					<Box
-						fontFamily="mono"
+						key={tab.id}
+						as="button"
+						py={3}
 						fontSize="sm"
-						whiteSpace="pre-wrap"
-						wordBreak="break-all"
-						color="var(--wl-text)"
+						fontWeight="medium"
+						borderBottomWidth="2px"
+						borderBottomColor={activeDetailTab === tab.id ? "var(--wl-accent)" : "transparent"}
+						color={activeDetailTab === tab.id ? "var(--wl-accent)" : "var(--wl-text-subtle)"}
+						_hover={{ color: activeDetailTab === tab.id ? "var(--wl-accent)" : "var(--wl-text)" }}
+						onClick={() => setActiveDetailTab(tab.id)}
+						flexShrink={0}
 					>
-						{event.body
-							? JSON.stringify(event.body, null, 2)
-							: bodyDisplay}
+						{tab.label}
+						{tab.badge != null && (
+							<Box
+								as="span"
+								ml={1}
+								px={1.5}
+								py={0.5}
+								fontSize="10px"
+								rounded="full"
+								bg="var(--wl-bg-muted)"
+							>
+								{tab.badge}
+							</Box>
+						)}
 					</Box>
-				)}
-				{activeDetailTab === "raw" && (
-					<Box
-						fontFamily="mono"
-						fontSize="sm"
-						whiteSpace="pre-wrap"
-						wordBreak="break-all"
-						color="var(--wl-text)"
+				))}
+				<Flex ml="auto" gap={1} flexShrink={0}>
+					<Button
+						size="sm"
+						variant="ghost"
+						onClick={handleShare}
+						aria-label="Share"
+						px={2}
+						py={1.5}
+						fontSize="xs"
+						color="var(--wl-text-subtle)"
+						_hover={{ color: "var(--wl-text)" }}
 					>
-						{bodyDisplay}
+						<span className="material-symbols-outlined" style={{ fontSize: 16, marginRight: 4 }}>
+							link
+						</span>
+						{shareCopied ? "Copied!" : "Share"}
+					</Button>
+					<Button
+						size="sm"
+						variant="ghost"
+						onClick={handleCopyBody}
+						aria-label="Copy body"
+						px={2}
+						py={1.5}
+						fontSize="xs"
+						color="var(--wl-text-subtle)"
+						_hover={{ color: "var(--wl-text)" }}
+					>
+						<span className="material-symbols-outlined" style={{ fontSize: 16, marginRight: 4 }}>
+							content_copy
+						</span>
+						{bodyCopied ? "Copied!" : "Copy Body"}
+					</Button>
+				</Flex>
+			</Flex>
+
+			{/* Content */}
+			<Box
+				flex={1}
+				display="flex"
+				flexDir="column"
+				minH={0}
+				bg="var(--wl-bg)"
+			>
+				{(activeDetailTab === "pretty" || activeDetailTab === "raw") && (
+					<Box flex={1} minH={0} overflow="hidden" display="flex" flexDir="column">
+						<JsonViewer event={event} tab={activeDetailTab} searchFilter={searchFilter} />
 					</Box>
 				)}
 				{activeDetailTab === "headers" && (
-					<Box
-						as="table"
-						w="full"
-						fontSize="sm"
-						style={{
-							borderCollapse: "collapse",
-						}}
-					>
-						<thead>
-							<tr>
-								<th style={{ padding: "0.5rem 0.75rem", textAlign: "left", borderBottom: "1px solid var(--wl-border-subtle)", color: "var(--wl-accent)" }}>
-									KEY
-								</th>
-								<th style={{ padding: "0.5rem 0.75rem", textAlign: "left", borderBottom: "1px solid var(--wl-border-subtle)", color: "var(--wl-text-muted)" }}>
-									VALUE
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							{Object.entries(event.headers ?? {}).map(([k, v]) => (
-								<tr key={k}>
-									<td style={{ padding: "0.5rem 0.75rem", borderBottom: "1px solid var(--wl-border-subtle)", fontFamily: "monospace", color: "var(--wl-accent)" }}>
-										{k}
-									</td>
-									<td style={{ padding: "0.5rem 0.75rem", borderBottom: "1px solid var(--wl-border-subtle)", fontFamily: "monospace", wordBreak: "break-all" }}>
-										{v}
-									</td>
-								</tr>
-							))}
-						</tbody>
+					<Box flex={1} overflow="auto" p={{ base: 4, md: 6 }} css={{ "&::-webkit-scrollbar": { width: 6 } }}>
+					<Box>
+						{Object.keys(event.headers ?? {}).length === 0 ? (
+							<Text color="var(--wl-text-subtle)">No headers</Text>
+						) : (
+							<Flex flexDir="column" gap={3}>
+								{Object.entries(event.headers ?? {}).map(([k, v]) => (
+									<Box
+										key={k}
+										p={3}
+										rounded="lg"
+										bg="var(--wl-bg-subtle)"
+										borderWidth="1px"
+										borderColor="var(--wl-border-subtle)"
+									>
+										<Text
+											fontSize="xs"
+											color="var(--wl-text-subtle)"
+											textTransform="uppercase"
+											mb={1}
+											dangerouslySetInnerHTML={{ __html: highlightSearch(k, searchFilter ?? "") }}
+										/>
+										<Flex align="flex-start" justify="space-between" gap={2}>
+											<Text
+												fontSize="sm"
+												fontFamily="mono"
+												wordBreak="break-all"
+												flex={1}
+												minW={0}
+												dangerouslySetInnerHTML={{
+													__html: highlightSearch(String(v), searchFilter ?? ""),
+												}}
+											/>
+											<Box
+												as="button"
+												p={1}
+												rounded="md"
+												_hover={{ bg: "var(--wl-bg-muted)" }}
+												onClick={() => navigator.clipboard.writeText(v)}
+												aria-label="Copy"
+												flexShrink={0}
+											>
+												<span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--wl-text-subtle)" }}>
+													content_copy
+												</span>
+											</Box>
+										</Flex>
+									</Box>
+								))}
+							</Flex>
+						)}
 					</Box>
+				</Box>
 				)}
 				{activeDetailTab === "query" && (
-					<Box
-						as="table"
-						w="full"
-						fontSize="sm"
-						style={{ borderCollapse: "collapse" }}
-					>
-						<thead>
-							<tr>
-								<th style={{ padding: "0.5rem 0.75rem", textAlign: "left", borderBottom: "1px solid var(--wl-border-subtle)", color: "var(--wl-accent)" }}>
-									KEY
-								</th>
-								<th style={{ padding: "0.5rem 0.75rem", textAlign: "left", borderBottom: "1px solid var(--wl-border-subtle)", color: "var(--wl-text-muted)" }}>
-									VALUE
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							{Object.keys(event.queryParams ?? {}).length === 0 ? (
-								<tr>
-									<td colSpan={2} style={{ color: "var(--wl-text-subtle)", padding: "0.5rem 0.75rem" }}>
-										No query parameters
-									</td>
-								</tr>
-							) : (
-								Object.entries(event.queryParams ?? {}).map(([k, v]) => (
-									<tr key={k}>
-										<td style={{ padding: "0.5rem 0.75rem", borderBottom: "1px solid var(--wl-border-subtle)", fontFamily: "monospace", color: "var(--wl-accent)" }}>
-											{k}
-										</td>
-										<td style={{ padding: "0.5rem 0.75rem", borderBottom: "1px solid var(--wl-border-subtle)", fontFamily: "monospace", wordBreak: "break-all" }}>
-											{v}
-										</td>
-									</tr>
-								))
-							)}
-						</tbody>
+					<Box flex={1} overflow="auto" p={{ base: 4, md: 6 }} css={{ "&::-webkit-scrollbar": { width: 6 } }}>
+					<Box>
+						{Object.keys(event.queryParams ?? {}).length === 0 ? (
+							<Text color="var(--wl-text-subtle)">No query parameters</Text>
+						) : (
+							<Flex flexDir="column" gap={3}>
+								{Object.entries(event.queryParams ?? {}).map(([k, v]) => (
+									<Box
+										key={k}
+										p={3}
+										rounded="lg"
+										bg="var(--wl-bg-subtle)"
+										borderWidth="1px"
+										borderColor="var(--wl-border-subtle)"
+									>
+										<Text
+											fontSize="xs"
+											color="var(--wl-text-subtle)"
+											textTransform="uppercase"
+											mb={1}
+											dangerouslySetInnerHTML={{
+												__html: highlightSearch(k, searchFilter ?? ""),
+											}}
+										/>
+										<Flex align="flex-start" justify="space-between" gap={2}>
+											<Text
+												fontSize="sm"
+												fontFamily="mono"
+												wordBreak="break-all"
+												flex={1}
+												minW={0}
+												dangerouslySetInnerHTML={{
+													__html: highlightSearch(String(v), searchFilter ?? ""),
+												}}
+											/>
+											<Box
+												as="button"
+												p={1}
+												rounded="md"
+												_hover={{ bg: "var(--wl-bg-muted)" }}
+												onClick={() => navigator.clipboard.writeText(v)}
+												aria-label="Copy"
+												flexShrink={0}
+											>
+												<span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--wl-text-subtle)" }}>
+													content_copy
+												</span>
+											</Box>
+										</Flex>
+									</Box>
+								))}
+							</Flex>
+						)}
 					</Box>
-				)}
-				{/* Replay section */}
-				<Box mt={8} pt={6} borderTopWidth="1px" borderColor="var(--wl-border-subtle)">
-					<Text fontSize="xs" color="var(--wl-text-muted)" mb={2}>
-						Replay to URL
-					</Text>
-					<Flex gap={2} align="center">
-						<Input
-							placeholder="https://example.com/callback"
-							value={targetUrl}
-							onChange={(e) => setTargetUrl(e.target.value)}
-							bg="var(--wl-bg-subtle)"
-							borderColor="var(--wl-border)"
-							fontFamily="mono"
-							flex={1}
-						/>
-						<Button
-							colorPalette="cyan"
-							onClick={handleReplay}
-							loading={replaying}
-							disabled={!targetUrl.trim()}
-						>
-							Replay
-						</Button>
-					</Flex>
-					{replayStatus && (
-						<Text
-							mt={2}
-							fontSize="sm"
-							color={replayStatus.startsWith("✓") ? "green.500" : "red.500"}
-						>
-							{replayStatus}
-						</Text>
-					)}
 				</Box>
+				)}
 			</Box>
+
+			{/* Footer: Size, Format, Received */}
+			<Flex
+				minH={10}
+				shrink={0}
+				align="center"
+				justify="space-between"
+				px={{ base: 4, md: 6 }}
+				py={{ base: 3, md: 2 }}
+				borderTopWidth="1px"
+				borderColor="var(--wl-border-subtle)"
+				bg="var(--wl-bg-subtle)"
+				flexWrap="wrap"
+				gap={2}
+			>
+				<Flex gap={{ base: 3, md: 4 }} fontSize="10px" fontWeight="semibold" color="var(--wl-text-subtle)" textTransform="uppercase" letterSpacing="wider">
+					<Flex align="center" gap={1} as="span">
+						<span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+							data_object
+						</span>
+						<Text as="span">Size: {formatSize(requestSizeBytes)}</Text>
+					</Flex>
+					<Text as="span">Format: JSON</Text>
+					<Text as="span">Received: {receivedAgo}</Text>
+				</Flex>
+			</Flex>
 		</Box>
 	);
 }

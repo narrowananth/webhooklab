@@ -33,12 +33,12 @@ export class ErrorBoundary extends Component<Props, State> {
 						alignItems: "center",
 						justifyContent: "center",
 						padding: "2rem",
-						fontFamily: "system-ui, sans-serif",
+						fontFamily: "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
 						backgroundColor: "#0f172a",
 						color: "#f8fafc",
 					}}
 				>
-					<h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
+					<h1 style={{ fontSize: "var(--wl-font-lg)", marginBottom: "1rem" }}>
 						Something went wrong
 					</h1>
 					<pre
@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
 							borderRadius: "0.5rem",
 							overflow: "auto",
 							maxWidth: "100%",
-							fontSize: "0.875rem",
+							fontSize: "var(--wl-font-sm)",
 						}}
 					>
 						{this.state.error.message}

@@ -9,17 +9,12 @@ import {
 	varchar,
 } from "drizzle-orm/pg-core";
 
-export const webhooks = pgTable(
-	"webhooks",
-	{
-		id: bigserial("id", { mode: "number" }).primaryKey(),
-		webhookId: uuid("webhook_id").notNull().unique(),
-		slug: varchar("slug", { length: 100 }).unique(),
-		name: varchar("name", { length: 255 }),
-		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-	},
-	(table) => [index("idx_webhooks_slug").on(table.slug)],
-);
+export const webhooks = pgTable("webhooks", {
+	id: bigserial("id", { mode: "number" }).primaryKey(),
+	webhookId: uuid("webhook_id").notNull().unique(),
+	name: varchar("name", { length: 255 }),
+	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const requests = pgTable(
 	"requests",

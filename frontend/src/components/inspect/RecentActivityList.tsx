@@ -5,7 +5,7 @@
 import { Badge, Box, Flex, Text } from "@chakra-ui/react";
 import type { WebhookEvent } from "../../types";
 import { useInspectStore } from "../../store/useInspectStore";
-import { METHOD_COLORS } from "../../constants";
+import { METHOD_BADGE_STYLES, BADGE_STYLE_GRAY } from "../../constants";
 import { formatRelativeTime } from "../../utils/relativeTime";
 import { getPathFromUrl, truncatePath } from "../../utils/truncateUrl";
 
@@ -60,7 +60,8 @@ export function RecentActivityList({ events, onSelectEvent }: RecentActivityList
 									<Flex flex={1} flexDir="column" gap={1} minW={0}>
 										<Flex align="center" gap={2} flexWrap="wrap">
 											<Badge
-												colorPalette={METHOD_COLORS[event.method] ?? "gray"}
+												bg={METHOD_BADGE_STYLES[event.method]?.bg ?? BADGE_STYLE_GRAY.bg}
+												color={METHOD_BADGE_STYLES[event.method]?.fg ?? BADGE_STYLE_GRAY.fg}
 												size="sm"
 												fontFamily="mono"
 											>
