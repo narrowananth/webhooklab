@@ -26,7 +26,7 @@ function highlightJsonLine(line: string) {
 			const end = findStringEnd(line, i);
 			const after = line.slice(end).match(/^\s*:/);
 			if (after) {
-				parts.push({ text: line.slice(i, end), color: "var(--wl-accent)" });
+				parts.push({ text: line.slice(i, end), color: "var(--wl-json-key)" });
 				parts.push({ text: line.slice(end, end + after[0].length), color: "var(--wl-text)" });
 				i = end + after[0].length;
 				continue;
@@ -40,14 +40,14 @@ function highlightJsonLine(line: string) {
 		// Number
 		const numMatch = line.slice(i).match(/^-?\d+\.?\d*([eE][+-]?\d+)?/);
 		if (numMatch) {
-			parts.push({ text: numMatch[0], color: "orange.400" });
+			parts.push({ text: numMatch[0], color: "var(--wl-json-number)" });
 			i += numMatch[0].length;
 			continue;
 		}
 
 		// null
 		if (line.slice(i, i + 4) === "null") {
-			parts.push({ text: "null", color: "var(--wl-text-subtle)" });
+			parts.push({ text: "null", color: "var(--wl-json-null)" });
 			i += 4;
 			continue;
 		}
@@ -59,7 +59,7 @@ function highlightJsonLine(line: string) {
 		}
 		// false
 		if (line.slice(i, i + 5) === "false") {
-			parts.push({ text: "false", color: "var(--wl-text-subtle)" });
+			parts.push({ text: "false", color: "var(--wl-json-boolean)" });
 			i += 5;
 			continue;
 		}

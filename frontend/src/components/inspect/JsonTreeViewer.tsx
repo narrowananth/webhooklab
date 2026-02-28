@@ -5,11 +5,11 @@
 import { Box, Flex, Text } from "@chakra-ui/react";
 import { useState } from "react";
 
-const KEY_COLOR = "var(--wl-accent)";
-const STRING_COLOR = "#22c55e";
-const NUMBER_COLOR = "#f59e0b";
-const BOOLEAN_COLOR = "#8b5cf6";
-const NULL_COLOR = "var(--wl-text-subtle)";
+const KEY_COLOR = "var(--wl-json-key)";
+const STRING_COLOR = "var(--wl-json-string)";
+const NUMBER_COLOR = "var(--wl-json-number)";
+const BOOLEAN_COLOR = "var(--wl-json-boolean)";
+const NULL_COLOR = "var(--wl-json-null)";
 const BRACE_COLOR = "var(--wl-text-muted)";
 
 interface JsonNodeProps {
@@ -22,28 +22,28 @@ function JsonNode({ data, depth = 0 }: JsonNodeProps) {
 
 	if (data === null) {
 		return (
-			<Text as="span" color={NULL_COLOR} fontFamily="mono" fontSize="sm">
+			<Text as="span" color={NULL_COLOR} fontFamily="var(--wl-font-mono)" fontSize="13px">
 				null
 			</Text>
 		);
 	}
 	if (typeof data === "boolean") {
 		return (
-			<Text as="span" color={BOOLEAN_COLOR} fontFamily="mono" fontSize="sm">
+			<Text as="span" color={BOOLEAN_COLOR} fontFamily="var(--wl-font-mono)" fontSize="13px">
 				{String(data)}
 			</Text>
 		);
 	}
 	if (typeof data === "number") {
 		return (
-			<Text as="span" color={NUMBER_COLOR} fontFamily="mono" fontSize="sm">
+			<Text as="span" color={NUMBER_COLOR} fontFamily="var(--wl-font-mono)" fontSize="13px">
 				{String(data)}
 			</Text>
 		);
 	}
 	if (typeof data === "string") {
 		return (
-			<Text as="span" color={STRING_COLOR} fontFamily="mono" fontSize="sm">
+			<Text as="span" color={STRING_COLOR} fontFamily="var(--wl-font-mono)" fontSize="13px">
 				"{data}"
 			</Text>
 		);
@@ -52,7 +52,7 @@ function JsonNode({ data, depth = 0 }: JsonNodeProps) {
 	if (Array.isArray(data)) {
 		const isEmpty = data.length === 0;
 		return (
-			<Box fontFamily="mono" fontSize="sm">
+			<Box fontFamily="var(--wl-font-mono)" fontSize="13px">
 				<Flex
 					as="button"
 					align="center"
@@ -97,7 +97,7 @@ function JsonNode({ data, depth = 0 }: JsonNodeProps) {
 		const entries = Object.entries(data);
 		const isEmpty = entries.length === 0;
 		return (
-			<Box fontFamily="mono" fontSize="sm">
+			<Box fontFamily="var(--wl-font-mono)" fontSize="13px">
 				<Flex
 					as="button"
 					align="center"
@@ -163,7 +163,7 @@ export function JsonTreeViewer({ data, rawFallback }: JsonTreeViewerProps) {
 
 	if (parsed !== null) {
 		return (
-			<Box fontFamily="mono" fontSize="sm">
+			<Box fontFamily="var(--wl-font-mono)" fontSize="13px">
 				<JsonNode data={parsed} />
 			</Box>
 		);
@@ -182,7 +182,7 @@ export function JsonTreeViewer({ data, rawFallback }: JsonTreeViewerProps) {
 		);
 	}
 	return (
-		<Text color="var(--wl-text-subtle)" fontFamily="mono" fontSize="sm">
+		<Text color="var(--wl-text-subtle)" fontFamily="var(--wl-font-mono)" fontSize="13px">
 			{"{ } 0 items"}
 		</Text>
 	);

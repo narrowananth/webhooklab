@@ -97,19 +97,19 @@ export function RequestListPanel({
 
 	return (
 		<Box
-			w={{ base: "full", lg: 384 }}
-			minW={{ lg: 384 }}
+			w={{ base: "full", lg: 340 }}
+			minW={{ lg: 340 }}
 			flexShrink={0}
 			minH={0}
 			borderRightWidth={{ lg: "1px" }}
-			borderColor="var(--wl-border-subtle)"
-			bg="var(--wl-bg-subtle)"
+			borderColor="var(--wl-border)"
+			bg="var(--wl-surface)"
 			display={{ base: isMobileWithSelection ? "none" : "flex", lg: "flex" }}
 			flexDir="column"
 			overflow="hidden"
 		>
 			{/* Search + Filters */}
-			<Box p={4} borderBottomWidth="1px" borderColor="var(--wl-border-subtle)" flexShrink={0}>
+			<Box p={4} borderBottomWidth="1px" borderColor="var(--wl-border)" flexShrink={0}>
 				<Flex position="relative" mb={3}>
 					<Box
 						position="absolute"
@@ -147,11 +147,12 @@ export function RequestListPanel({
 							alignItems="center"
 							justifyContent="space-between"
 							px={3}
-							py={1.5}
+							py={2}
 							bg="var(--wl-bg)"
 							rounded="lg"
 							fontSize="xs"
 							fontWeight="medium"
+							lineHeight="1"
 							color="var(--wl-text-muted)"
 							borderWidth="1px"
 							borderColor="var(--wl-border-subtle)"
@@ -217,7 +218,7 @@ export function RequestListPanel({
 							alignItems="center"
 							justifyContent="space-between"
 							px={3}
-							py={1.5}
+							py={2}
 							bg="var(--wl-bg)"
 							rounded="lg"
 							fontSize="xs"
@@ -291,10 +292,11 @@ export function RequestListPanel({
 						py={1.5}
 						px={2}
 						rounded="md"
+						lineHeight="1"
 						_hover={{ bg: "var(--wl-bg-muted)" }}
 						onClick={() => setFiltersExpanded(!filtersExpanded)}
 					>
-						<Text fontSize="xs" fontWeight="semibold" color="var(--wl-text-subtle)">
+						<Text fontSize="xs" fontWeight="semibold" color="var(--wl-text-subtle)" lineHeight="1">
 							{hasActiveFilters ? "Filters active" : "More filters"}
 						</Text>
 						<span
@@ -415,15 +417,18 @@ export function RequestListPanel({
 								as="button"
 								w="full"
 								textAlign="left"
+								display="flex"
+								flexDir="column"
+								alignItems="stretch"
 								p={4}
 								mb={2}
 								cursor="pointer"
 								rounded="lg"
 								borderWidth="1px"
-								borderColor={isSelected ? "var(--wl-accent)" : "var(--wl-border-subtle)"}
-								bg={isSelected ? "var(--wl-selected-bg)" : "var(--wl-bg)"}
+								borderColor={isSelected ? "var(--wl-accent)" : "var(--wl-border)"}
+								bg={isSelected ? "var(--wl-elevated)" : "var(--wl-bg)"}
 								_hover={{
-									bg: isSelected ? "var(--wl-selected-bg)" : "var(--wl-bg-muted)",
+									bg: isSelected ? "var(--wl-elevated)" : "var(--wl-bg-muted)",
 									borderColor: isSelected ? "var(--wl-accent)" : "var(--wl-border)",
 								}}
 								onClick={() => onSelectEvent(event)}
@@ -434,20 +439,23 @@ export function RequestListPanel({
 											bg={badgeStyle.bg}
 											color={badgeStyle.fg}
 											size="sm"
-											fontSize="var(--wl-font-xs)"
-											fontWeight="bold"
+											fontSize="12px"
+											fontWeight={600}
+											letterSpacing="0.04em"
+											textTransform="uppercase"
+											lineHeight="1"
 										>
 											{event.method === "DELETE" ? "DEL" : event.method}
 										</Badge>
-										<Text fontSize="xs" fontWeight="medium" color="var(--wl-text)">
+										<Text fontSize="13px" fontWeight={500} lineHeight="1" color="var(--wl-text)">
 											200 OK
 										</Text>
 									</Flex>
-									<Text fontSize="xs" color="var(--wl-text-subtle)" flexShrink={0}>
+									<Text fontSize="12px" color="var(--wl-text-subtle)" flexShrink={0}>
 										{dateTime}
 									</Text>
 								</Flex>
-								<Flex align="center" gap={3} mt={2} fontSize="xs" color="var(--wl-text-subtle)">
+								<Flex align="center" gap={3} mt={2} fontSize="12px" color="var(--wl-text-subtle)" lineHeight="1">
 									<Flex align="center" gap={1}>
 										<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-sm)" }}>
 											public
@@ -460,7 +468,7 @@ export function RequestListPanel({
 										</span>
 										{formatSize(getRequestSizeBytes(event))}
 									</Flex>
-									<Text fontSize="xs" color="var(--wl-text-subtle)">
+									<Text fontSize="12px" lineHeight="1" color="var(--wl-text-subtle)">
 										#{event.id}
 									</Text>
 								</Flex>

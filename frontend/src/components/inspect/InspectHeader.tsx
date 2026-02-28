@@ -32,7 +32,8 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 	return (
 		<Box
 			as="header"
-			h={16}
+			h="56px"
+			minH="56px"
 			flexShrink={0}
 			borderBottomWidth="1px"
 			borderColor="var(--wl-border-subtle)"
@@ -44,13 +45,13 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 			justifyContent="space-between"
 			gap={6}
 		>
-			{/* Logo + Connection status */}
-			<Flex align="center" gap={6} flexShrink={0} minH={10}>
+			{/* Logo + Connection status - compact left section */}
+			<Flex align="center" gap={4} flexShrink={0} w={{ base: "auto", md: "313px" }} h={10}>
 				<Link
 					to="/"
 					style={{
-						fontWeight: "bold",
-						fontSize: "var(--wl-font-lg)",
+						fontWeight: 600,
+						fontSize: "var(--wl-font-18)",
 						color: "var(--wl-text)",
 						textDecoration: "none",
 						display: "flex",
@@ -58,82 +59,86 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 						gap: "0.5rem",
 					}}
 				>
-					<Box
-						as="span"
-						w={8}
-						h={8}
-						rounded="md"
-						bg="var(--wl-accent)"
-						display="flex"
-						alignItems="center"
-						justifyContent="center"
-						fontSize="lg"
-					>
-						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "white" }}>
-							webhook
-						</span>
-					</Box>
-					<Text as="span" display={{ base: "none", sm: "inline" }}>
+					<img
+						src="/asset/logo/favicon.svg"
+						alt="WebhookLab"
+						style={{
+							width: 32,
+							height: 32,
+							borderRadius: 6,
+							objectFit: "contain",
+							flexShrink: 0,
+							verticalAlign: "middle",
+						}}
+					/>
+					<Text as="span" display={{ base: "none", sm: "inline" }} lineHeight="1" alignSelf="center">
 						WebhookLab
 					</Text>
 				</Link>
 				<Box w="1px" h={6} bg="var(--wl-border-subtle)" />
 				<Flex
 					align="center"
+					justify="center"
 					gap={2}
 					px={3}
 					py={1.5}
 					rounded="full"
-					bg={connected ? "var(--wl-success-muted)" : "var(--wl-error-muted)"}
+					bg={connected ? "var(--wl-connected-bg)" : "var(--wl-disconnected-bg)"}
 					borderWidth="0"
 				>
 					<Box
 						w={2}
 						h={2}
 						rounded="full"
-						bg={connected ? "var(--wl-success)" : "var(--wl-error)"}
+						bg={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
+						alignSelf="center"
 					/>
 					<Text
-						fontSize="xs"
-						fontWeight="semibold"
-						color={connected ? "var(--wl-success)" : "var(--wl-error)"}
+						fontSize="12px"
+						fontWeight={600}
+						lineHeight="1"
+						color={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
 						textTransform="uppercase"
-						letterSpacing="wider"
+						letterSpacing="0.05em"
+						alignSelf="center"
 					>
 						{connected ? "Connected" : "Disconnected"}
 					</Text>
 				</Flex>
 			</Flex>
 
-			{/* Centered webhook URL with copy */}
-			<Flex flex={1} maxW="2xl" px={{ base: 2, md: 8 }} minW={0} align="center" minH={10}>
+			{/* Centered webhook URL with copy - consistent height */}
+			<Flex flex={1} maxW="470px" minW={0} px={{ base: 2, md: 6 }} align="center" h={10} justify="center">
 				<Flex
 					align="center"
+					justify="center"
 					flex={1}
 					bg="var(--wl-bg)"
 					borderWidth="1px"
 					borderColor="var(--wl-border-subtle)"
 					rounded="md"
 					overflow="hidden"
-					minH={10}
+					h={9}
 				>
 					<Text
-						px={2}
-						py={1}
-						fontSize="xs"
-						fontFamily="mono"
-						lineHeight="tight"
+						px={3}
+						py={1.5}
+						fontSize="13px"
+						fontFamily="var(--wl-font-mono)"
+						lineHeight="1"
 						color="var(--wl-text-muted)"
 						flex={1}
 						overflowX="auto"
 						whiteSpace="nowrap"
+						alignSelf="center"
+						textAlign="center"
 						css={{ "&::-webkit-scrollbar": { height: 4 } }}
 					>
 						{webhookUrl || "—"}
 					</Text>
 					<Box
 						as="button"
-						p={1.5}
+						p={2}
 						display="flex"
 						alignItems="center"
 						justifyContent="center"
@@ -152,8 +157,8 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 				</Flex>
 			</Flex>
 
-			{/* Pause, Clear, Theme toggle */}
-			<Flex align="center" gap={3} flexShrink={0} minH={10}>
+			{/* Pause, Clear, Theme toggle - compact right section */}
+			<Flex align="center" gap={2} flexShrink={0} w={{ base: "auto", md: "280px" }} h={10}>
 				<Flex
 					bg="var(--wl-bg)"
 					p={1}
@@ -161,19 +166,21 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 					borderWidth="1px"
 					borderColor="var(--wl-border-subtle)"
 					gap={0}
+					align="center"
+					h={9}
 				>
 					<Box
 						as="button"
 						display="flex"
 						alignItems="center"
-						gap={2}
-						px={4}
+						gap={1.5}
+						px={3}
 						py={1.5}
 						rounded="md"
 						bg={isPaused ? "var(--wl-bg-muted)" : "var(--wl-bg-subtle)"}
 						shadow={isPaused ? "none" : "sm"}
-						fontSize="sm"
-						fontWeight="medium"
+						fontSize="13px"
+						fontWeight={500}
 						color={isPaused ? "var(--wl-text-subtle)" : "var(--wl-text)"}
 						onClick={togglePaused}
 						aria-label={isPaused ? "Resume" : "Pause"}
@@ -189,12 +196,12 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 						as="button"
 						display="flex"
 						alignItems="center"
-						gap={2}
-						px={4}
+						gap={1.5}
+						px={3}
 						py={1.5}
 						rounded="md"
-						fontSize="sm"
-						fontWeight="medium"
+						fontSize="13px"
+						fontWeight={500}
 						color="var(--wl-text-subtle)"
 						_hover={{ color: "var(--wl-text)" }}
 						onClick={onClear}
@@ -210,6 +217,8 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 				</Flex>
 				<Box
 					as="button"
+					w={9}
+					h={9}
 					p={2}
 					rounded="lg"
 					display="flex"
@@ -228,7 +237,8 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 				<Box position="relative" ref={optionsRef}>
 					<Box
 						as="button"
-						p={2}
+						w={9}
+						h={9}
 						rounded="lg"
 						display="flex"
 						alignItems="center"

@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
 						color: "#f8fafc",
 					}}
 				>
-					<h1 style={{ fontSize: "var(--wl-font-lg)", marginBottom: "1rem" }}>
+					<h1 style={{ fontSize: "var(--wl-font-18)", marginBottom: "1rem" }}>
 						Something went wrong
 					</h1>
 					<pre
@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
 							borderRadius: "0.5rem",
 							overflow: "auto",
 							maxWidth: "100%",
-							fontSize: "var(--wl-font-sm)",
+							fontSize: "var(--wl-font-14)",
 						}}
 					>
 						{this.state.error.message}

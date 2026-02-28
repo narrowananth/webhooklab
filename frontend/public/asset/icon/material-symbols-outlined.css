@@ -1,0 +1,36 @@
+/**
+ * Material Symbols Outlined - loaded locally from /asset/icon/
+ * No external CDN or network requests required.
+ */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-display: block;
+  font-weight: 300;
+  src: url(/asset/icon/material-symbols-outlined-latin-300-normal.woff2) format('woff2'),
+       url(/asset/icon/material-symbols-outlined-latin-300-normal.woff) format('woff');
+}
+
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-display: block;
+  font-weight: 400;
+  src: url(/asset/icon/material-symbols-outlined-latin-400-normal.woff2) format('woff2'),
+       url(/asset/icon/material-symbols-outlined-latin-400-normal.woff) format('woff');
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: 300;
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  vertical-align: middle;
+}

@@ -81,7 +81,7 @@ export function JsonPrettyView({ data }: { data: unknown }) {
 				: JSON.stringify(data, null, 2);
 	} catch {
 		return (
-			<Text fontFamily="mono" fontSize="sm" whiteSpace="pre-wrap" color="var(--wl-text)">
+			<Text fontFamily="var(--wl-font-mono)" fontSize="13px" lineHeight="1.6" whiteSpace="pre-wrap" color="var(--wl-text)">
 				{String(data)}
 			</Text>
 		);
@@ -89,7 +89,7 @@ export function JsonPrettyView({ data }: { data: unknown }) {
 
 	const lines = formatted.split("\n");
 	return (
-		<Box fontFamily="mono" fontSize="sm" lineHeight="relaxed">
+		<Box fontFamily="var(--wl-font-mono)" fontSize="13px" lineHeight="1.6">
 			{lines.map((line, idx) => {
 				const segments = highlightJsonLine(line);
 				return (

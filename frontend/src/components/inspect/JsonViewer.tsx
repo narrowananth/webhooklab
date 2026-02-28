@@ -46,8 +46,9 @@ export function JsonViewer({ event, tab, searchFilter }: JsonViewerProps) {
 			>
 				<Text
 					as="pre"
-					fontSize="sm"
-					fontFamily="mono"
+					fontSize="13px"
+					lineHeight="1.6"
+					fontFamily="var(--wl-font-mono)"
 					whiteSpace="pre-wrap"
 					wordBreak="break-all"
 					color="var(--wl-text)"
@@ -65,7 +66,7 @@ export function JsonViewer({ event, tab, searchFilter }: JsonViewerProps) {
 			minH="200px"
 			css={{
 				"&::-webkit-scrollbar": { width: 6 },
-				"& .variable-row": { fontFamily: "mono" },
+				"& .variable-row, & *": { fontFamily: "var(--wl-font-mono) !important" },
 			}}
 		>
 			<ReactJsonView
@@ -78,7 +79,7 @@ export function JsonViewer({ event, tab, searchFilter }: JsonViewerProps) {
 				displayDataTypes={false}
 				displayObjectSize
 				displayArrayKey
-				style={{ background: "transparent", fontSize: 13 }}
+				style={{ background: "transparent", fontSize: 13, fontFamily: "var(--wl-font-mono)" }}
 			/>
 		</Box>
 	);

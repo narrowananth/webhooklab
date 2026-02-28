@@ -118,17 +118,17 @@ export function InspectDetailPane() {
 		<Box flex={1} display="flex" flexDir="column" overflow="hidden" bg="var(--wl-bg)">
 			{/* Header: Method + Path, Forward, Download */}
 			<Flex
-				minH={14}
+				minH={12}
 				shrink={0}
 				align="center"
 				justify="space-between"
 				px={{ base: 4, md: 6 }}
-				py={{ base: 3, md: 0 }}
+				py={2}
 				borderBottomWidth="1px"
 				borderColor="var(--wl-border-subtle)"
 				bg="var(--wl-bg-subtle)"
 				gap={{ base: 2, md: 4 }}
-				flexWrap="wrap"
+				flexWrap={{ base: "wrap", md: "nowrap" }}
 			>
 				<Flex align="center" gap={2} minW={0} flex={1} minH={10}>
 					<Badge
@@ -138,6 +138,7 @@ export function InspectDetailPane() {
 						px={2}
 						py={1}
 						flexShrink={0}
+						lineHeight="1"
 					>
 						{event.method}
 					</Badge>
@@ -145,6 +146,7 @@ export function InspectDetailPane() {
 						as="code"
 						fontSize={{ base: "xs", md: "sm" }}
 						fontWeight="medium"
+						lineHeight="1"
 						color="var(--wl-text-muted)"
 						fontFamily="mono"
 						truncate
@@ -161,11 +163,17 @@ export function InspectDetailPane() {
 							aria-expanded={copyAsOpen}
 							aria-haspopup="true"
 							gap={{ base: 0, md: 2 }}
-							px={{ base: 2, md: 3 }}
+							px={3}
+							py={2}
+							fontWeight="normal"
+							color="var(--wl-text-subtle)"
+							_hover={{ color: "var(--wl-text)" }}
 							display={{ base: "none", lg: "flex" }}
+							alignItems="center"
+							justifyContent="center"
 							onClick={() => setCopyAsOpen(!copyAsOpen)}
 						>
-							<span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+							<span className="material-symbols-outlined" style={{ fontSize: 18, color: "inherit" }}>
 								content_copy
 							</span>
 							{copyAsCopied ? "Copied!" : "Copy"}
@@ -220,8 +228,11 @@ export function InspectDetailPane() {
 					/>
 					<Box
 						as="button"
-						p={1.5}
+						p={2}
 						rounded="md"
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
 						_hover={{ bg: "var(--wl-bg-muted)" }}
 						onClick={handleDownload}
 						aria-label="Download"
@@ -238,6 +249,7 @@ export function InspectDetailPane() {
 
 			{/* Meta bar: #ID, IP, Time, Size, Content-Type */}
 			<Flex
+				minH={10}
 				px={{ base: 4, md: 6 }}
 				py={2}
 				gap={4}
@@ -247,8 +259,9 @@ export function InspectDetailPane() {
 				borderBottomWidth="1px"
 				borderColor="var(--wl-border-subtle)"
 				flexWrap="wrap"
+				align="center"
 			>
-				<Text as="span" fontFamily="mono" fontWeight="semibold">
+				<Text as="span" fontFamily="var(--wl-font-mono)" fontWeight={600}>
 					#{event.id}
 				</Text>
 				<Flex align="center" gap={1}>
@@ -269,7 +282,7 @@ export function InspectDetailPane() {
 					</span>
 					{formatSize(requestSizeBytes)}
 				</Flex>
-				<Text as="span" fontFamily="mono" truncate maxW="200px">
+				<Text as="span" fontFamily="var(--wl-font-mono)" fontSize="12px" truncate maxW="200px">
 					{Object.entries(event.headers ?? {}).find(
 						([k]) => k.toLowerCase() === "content-type",
 					)?.[1] ?? "—"}
@@ -278,6 +291,8 @@ export function InspectDetailPane() {
 
 			{/* Tabs + Share/Copy Body */}
 			<Flex
+				minH={12}
+				py={2}
 				px={{ base: 4, md: 6 }}
 				gap={{ base: 6, md: 8 }}
 				borderBottomWidth="1px"
@@ -291,9 +306,9 @@ export function InspectDetailPane() {
 					<Box
 						key={tab.id}
 						as="button"
-						py={3}
-						fontSize="sm"
-						fontWeight="medium"
+						py={2}
+						fontSize="14px"
+						fontWeight={500}
 						borderBottomWidth="2px"
 						borderBottomColor={activeDetailTab === tab.id ? "var(--wl-accent)" : "transparent"}
 						color={activeDetailTab === tab.id ? "var(--wl-accent)" : "var(--wl-text-subtle)"}
@@ -317,19 +332,20 @@ export function InspectDetailPane() {
 						)}
 					</Box>
 				))}
-				<Flex ml="auto" gap={1} flexShrink={0}>
+				<Flex ml="auto" gap={1} flexShrink={0} align="center">
 					<Button
 						size="sm"
 						variant="ghost"
 						onClick={handleShare}
 						aria-label="Share"
-						px={2}
-						py={1.5}
-						fontSize="xs"
+						px={3}
+						py={2}
+						fontSize="14px"
+						fontWeight={500}
 						color="var(--wl-text-subtle)"
 						_hover={{ color: "var(--wl-text)" }}
 					>
-						<span className="material-symbols-outlined" style={{ fontSize: 16, marginRight: 4 }}>
+						<span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 4 }}>
 							link
 						</span>
 						{shareCopied ? "Copied!" : "Share"}
@@ -339,13 +355,14 @@ export function InspectDetailPane() {
 						variant="ghost"
 						onClick={handleCopyBody}
 						aria-label="Copy body"
-						px={2}
-						py={1.5}
-						fontSize="xs"
+						px={3}
+						py={2}
+						fontSize="14px"
+						fontWeight={500}
 						color="var(--wl-text-subtle)"
 						_hover={{ color: "var(--wl-text)" }}
 					>
-						<span className="material-symbols-outlined" style={{ fontSize: 16, marginRight: 4 }}>
+						<span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 4 }}>
 							content_copy
 						</span>
 						{bodyCopied ? "Copied!" : "Copy Body"}
@@ -383,7 +400,9 @@ export function InspectDetailPane() {
 										borderColor="var(--wl-border-subtle)"
 									>
 										<Text
-											fontSize="xs"
+											fontSize="12px"
+											fontWeight={600}
+											letterSpacing="0.05em"
 											color="var(--wl-text-subtle)"
 											textTransform="uppercase"
 											mb={1}
@@ -391,8 +410,8 @@ export function InspectDetailPane() {
 										/>
 										<Flex align="flex-start" justify="space-between" gap={2}>
 											<Text
-												fontSize="sm"
-												fontFamily="mono"
+												fontSize="13px"
+												fontFamily="var(--wl-font-mono)"
 												wordBreak="break-all"
 												flex={1}
 												minW={0}
@@ -494,7 +513,7 @@ export function InspectDetailPane() {
 				flexWrap="wrap"
 				gap={2}
 			>
-				<Flex gap={{ base: 3, md: 4 }} fontSize="10px" fontWeight="semibold" color="var(--wl-text-subtle)" textTransform="uppercase" letterSpacing="wider">
+				<Flex gap={{ base: 3, md: 4 }} fontSize="12px" fontWeight={400} color="var(--wl-text-subtle)">
 					<Flex align="center" gap={1} as="span">
 						<span className="material-symbols-outlined" style={{ fontSize: 12 }}>
 							data_object

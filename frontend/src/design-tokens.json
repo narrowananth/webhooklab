@@ -1,0 +1,30 @@
+{
+	"font": {
+		"primary": "Inter",
+		"mono": "JetBrains Mono"
+	},
+	"fontSize": {
+		"xs": "12px",
+		"sm": "13px",
+		"base": "14px",
+		"md": "16px",
+		"lg": "18px"
+	},
+	"spacing": {
+		"1": "4px",
+		"2": "8px",
+		"3": "16px",
+		"4": "24px",
+		"5": "32px",
+		"6": "40px",
+		"7": "48px"
+	},
+	"radius": {
+		"sm": "6px",
+		"md": "8px",
+		"lg": "12px"
+	},
+	"sidebar": {
+		"width": "340px"
+	}
+}

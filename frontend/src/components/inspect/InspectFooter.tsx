@@ -48,12 +48,13 @@ export function InspectFooter({
 			borderColor="var(--wl-border-subtle)"
 			px={4}
 			py={2}
+			minH={10}
 			display={{ base: "none", md: "block" }}
 		>
 			<Flex
 				justify="space-between"
 				align="center"
-				fontSize="xs"
+				fontSize="12px"
 				color="var(--wl-text-subtle)"
 				gap={4}
 				flexWrap="wrap"
@@ -77,8 +78,9 @@ export function InspectFooter({
 							h={2}
 							rounded="full"
 							bg={online ? "var(--wl-success)" : "var(--wl-error)"}
+							alignSelf="center"
 						/>
-						<Text>{networkLabel}</Text>
+						<Text lineHeight="1">{networkLabel}</Text>
 					</Flex>
 				</Flex>
 				<Flex align="center" gap={4}>
