@@ -111,6 +111,9 @@
 	--wl-icon-lg: 18px;
 	--wl-icon-xl: 20px;
 
+	/* Logo - fluid size based on viewport */
+	--wl-logo-size: clamp(28px, 3.5vw, 44px);
+
 	/* Sidebar - fluid: scales with viewport, never overflows on small screens */
 	--wl-sidebar-width: clamp(260px, 28vw, 340px);
 	--wl-sidebar-min-width: 260px;

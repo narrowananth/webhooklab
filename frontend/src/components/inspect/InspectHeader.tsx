@@ -89,8 +89,8 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 						src="/asset/logo/favicon.svg"
 						alt="WebhookLab"
 						style={{
-							width: 32,
-							height: 32,
+							width: "var(--wl-logo-size)",
+							height: "var(--wl-logo-size)",
 							borderRadius: 6,
 							objectFit: "contain",
 							flexShrink: 0,

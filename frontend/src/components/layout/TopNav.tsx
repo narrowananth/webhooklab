@@ -64,7 +64,8 @@ export function TopNav({
 					<img
 						src="/asset/logo/favicon.svg"
 						alt="WebhookLab"
-						className="w-7 h-7 rounded-md object-contain flex-shrink-0 align-middle"
+						className="rounded-md object-contain flex-shrink-0 align-middle"
+						style={{ width: "var(--wl-logo-size)", height: "var(--wl-logo-size)" }}
 					/>
 					<span className="hidden sm:inline leading-none self-center">WebhookLab</span>
 				</Link>
