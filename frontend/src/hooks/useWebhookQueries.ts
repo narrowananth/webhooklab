@@ -35,6 +35,7 @@ export const eventKeys = {
 			"search",
 			params.search,
 			params.method,
+			params.status,
 			params.ip,
 			params.requestId,
 			params.page ?? 1,

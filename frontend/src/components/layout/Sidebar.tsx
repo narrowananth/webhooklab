@@ -215,9 +215,10 @@ export function Sidebar({
 								type="button"
 								onClick={pagination.onPrev}
 								disabled={pagination.page <= 1}
-								className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-elevated disabled:opacity-50 disabled:cursor-not-allowed"
+								aria-label="Previous page"
+								className="px-2 py-1 rounded-md border border-border hover:bg-elevated disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
 							>
-								Prev
+								<span className="material-symbols-outlined text-base">chevron_left</span>
 							</button>
 							<div className="flex items-center gap-2">
 								<span className="text-xs text-text-secondary">
@@ -261,9 +262,10 @@ export function Sidebar({
 								type="button"
 								onClick={pagination.onNext}
 								disabled={pagination.page >= pagination.totalPages}
-								className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-elevated disabled:opacity-50 disabled:cursor-not-allowed"
+								aria-label="Next page"
+								className="px-2 py-1 rounded-md border border-border hover:bg-elevated disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
 							>
-								Next
+								<span className="material-symbols-outlined text-base">chevron_right</span>
 							</button>
 						</>
 					) : (

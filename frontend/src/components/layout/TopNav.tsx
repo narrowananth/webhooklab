@@ -163,16 +163,16 @@ export function TopNav({
 									e.stopPropagation();
 									onToggleAutoSelectNew();
 								}}
-								className="w-full flex items-center justify-between px-4 py-2 text-left text-sm text-text-primary hover:bg-elevated"
+								className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-left text-sm text-text-primary hover:bg-elevated"
 							>
 								<span>Auto-select new requests</span>
 								<div
-									className={`w-8 h-4 rounded-full relative transition-colors ${
-										autoSelectNew ? "bg-accent" : "bg-elevated"
+									className={`w-10 h-6 rounded-full relative transition-colors border flex-shrink-0 ${
+										autoSelectNew ? "bg-accent border-accent" : "bg-elevated border-border"
 									}`}
 								>
 									<span
-										className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-left ${
+										className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-left ${
 											autoSelectNew ? "left-5" : "left-1"
 										}`}
 									/>

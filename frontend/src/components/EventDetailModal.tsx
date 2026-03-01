@@ -26,6 +26,7 @@ export function EventDetailModal({
 	const [replayStatus, setReplayStatus] = useState<string | null>(null);
 	const [replaying, setReplaying] = useState(false);
 	const [activeTab, setActiveTab] = useState<"pretty" | "raw">("pretty");
+	const [curlCopied, setCurlCopied] = useState(false);
 
 	if (!event) return null;
 
@@ -157,8 +158,23 @@ export function EventDetailModal({
 							>
 								Raw
 							</Button>
-							<Button size="xs" variant="outline" onClick={copyCurl}>
-								Copy cURL
+							<Button
+								size="xs"
+								variant="outline"
+								onClick={copyCurl}
+								leftIcon={
+									<span
+										className="material-symbols-outlined"
+										style={{
+											fontSize: 14,
+											color: curlCopied ? "var(--wl-success)" : undefined,
+										}}
+									>
+										{curlCopied ? "check" : "content_copy"}
+									</span>
+								}
+							>
+								{curlCopied ? "Copied!" : "Copy cURL"}
 							</Button>
 						</Flex>
 						<Box

@@ -69,6 +69,7 @@ export async function captureWebhook(
 				body,
 				rawBody,
 				ip: req.ip ?? req.socket.remoteAddress ?? null,
+				status: 200,
 			})
 			.returning();
 
@@ -85,6 +86,7 @@ export async function captureWebhook(
 				body: inserted.body,
 				rawBody: inserted.rawBody,
 				ip: inserted.ip,
+				status: inserted.status ?? 200,
 				timestamp: inserted.createdAt,
 			},
 		});

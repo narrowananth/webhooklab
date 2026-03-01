@@ -22,6 +22,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 	const { isPaused, togglePaused, theme, toggleTheme, autoSelectNew, toggleAutoSelectNew } =
 		useInspectStore();
 	const [optionsOpen, setOptionsOpen] = useState(false);
+	const [urlCopied, setUrlCopied] = useState(false);
 	const optionsRef = useRef<HTMLDivElement>(null);
 	const urlContainerRef = useRef<HTMLDivElement>(null);
 	const [displayUrl, setDisplayUrl] = useState(webhookUrl || "—");
@@ -71,8 +72,8 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 			justifyContent="space-between"
 			gap="var(--wl-fluid-lg)"
 		>
-			{/* Logo + Connection status - compact left section */}
-			<Flex align="center" gap="var(--wl-fluid-md)" flexShrink={0} w={{ base: "auto", md: "min(313px, 28vw)" }} minW={0} h={10}>
+			{/* Logo - left section (matches sidebar width for alignment) */}
+			<Flex align="center" flexShrink={0} w={{ base: "auto", lg: "var(--wl-sidebar-width)" }} minW={{ base: 0, lg: "var(--wl-sidebar-min-width)" }} maxW={{ lg: "var(--wl-sidebar-max-width)" }} h={10}>
 				<Link
 					to="/"
 					style={{
@@ -101,36 +102,6 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 						WebhookLab
 					</Text>
 				</Link>
-				<Box w="1px" h={6} bg="var(--wl-border-subtle)" />
-				<Flex
-					align="center"
-					justify="center"
-					gap={2}
-					px={3}
-					py={1.5}
-					rounded="full"
-					bg={connected ? "var(--wl-connected-bg)" : "var(--wl-disconnected-bg)"}
-					borderWidth="0"
-				>
-					<Box
-						w={2}
-						h={2}
-						rounded="full"
-						bg={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
-						alignSelf="center"
-					/>
-					<Text
-						fontSize="12px"
-						fontWeight={600}
-						lineHeight="1"
-						color={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
-						textTransform="uppercase"
-						letterSpacing="0.05em"
-						alignSelf="center"
-					>
-						{connected ? "Connected" : "Disconnected"}
-					</Text>
-				</Flex>
 			</Flex>
 
 			{/* Centered webhook URL with copy - expands to fill available space, trims when needed */}
@@ -172,73 +143,94 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 						display="flex"
 						alignItems="center"
 						justifyContent="center"
-						onClick={onCopy}
-						aria-label="Copy URL"
+						onClick={async () => {
+							try {
+								await onCopy();
+								setUrlCopied(true);
+								setTimeout(() => setUrlCopied(false), 2000);
+							} catch {}
+						}}
+						aria-label={urlCopied ? "Copied" : "Copy URL"}
 						_hover={{ bg: "var(--wl-bg-muted)" }}
-						color="var(--wl-text-subtle)"
-						transition="background 0.15s"
+						color={urlCopied ? "var(--wl-success)" : "var(--wl-text-subtle)"}
+						transition="color 0.2s, background 0.15s"
 						borderLeftWidth="1px"
 						borderColor="var(--wl-border-subtle)"
 					>
 						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-md)" }}>
-							content_copy
+							{urlCopied ? "check" : "content_copy"}
 						</span>
 					</Box>
 				</Flex>
 			</Flex>
 
-			{/* Pause, Clear, Theme toggle, Options - right section (each button separate) */}
-			<Flex align="center" gap="var(--wl-fluid-sm)" flexShrink={0} w={{ base: "auto", md: "min(280px, 24vw)" }} minW={0} h={10}>
-				<Box
-					as="button"
-					display="flex"
-					alignItems="center"
-					gap={1.5}
+			{/* Right section: Connected → Pause → Clear → Theme toggle → Options (order fixed, no wrap) */}
+			<Flex align="center" gap="var(--wl-fluid-sm)" flexShrink={0} flexWrap="nowrap" minW={0} h={10}>
+				<Flex
+					align="center"
+					justify="center"
+					gap={2}
 					px={3}
 					py={1.5}
+					rounded="full"
+					bg={connected ? "var(--wl-connected-bg)" : "var(--wl-disconnected-bg)"}
+					borderWidth="0"
+				>
+					<Box
+						w={2}
+						h={2}
+						rounded="full"
+						bg={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
+						alignSelf="center"
+					/>
+					<Text
+						fontSize="12px"
+						fontWeight={600}
+						lineHeight="1"
+						color={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
+						textTransform="uppercase"
+						letterSpacing="0.05em"
+						alignSelf="center"
+					>
+						{connected ? "Connected" : "Disconnected"}
+					</Text>
+				</Flex>
+				<Box
+					as="button"
+					w={9}
+					h={9}
+					p={2}
 					rounded="lg"
+					display="flex"
+					alignItems="center"
+					justifyContent="center"
 					bg={isPaused ? "var(--wl-bg-muted)" : "var(--wl-bg)"}
-					borderWidth="1px"
-					borderColor="var(--wl-border-subtle)"
-					shadow={isPaused ? "none" : "sm"}
-					fontSize="13px"
-					fontWeight={500}
 					color={isPaused ? "var(--wl-text-subtle)" : "var(--wl-text)"}
 					onClick={togglePaused}
 					aria-label={isPaused ? "Resume" : "Pause"}
 					_hover={{ bg: "var(--wl-bg-muted)" }}
 				>
-					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-lg)" }}>
-						pause
+					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)" }}>
+						{isPaused ? "play_arrow" : "pause"}
 					</span>
-					<Text as="span" display={{ base: "none", md: "inline" }}>
-						Pause
-					</Text>
 				</Box>
 				<Box
 					as="button"
+					w={9}
+					h={9}
+					p={2}
+					rounded="lg"
 					display="flex"
 					alignItems="center"
-					gap={1.5}
-					px={3}
-					py={1.5}
-					rounded="lg"
-					bg="var(--wl-bg)"
-					borderWidth="1px"
-					borderColor="var(--wl-border-subtle)"
-					fontSize="13px"
-					fontWeight={500}
+					justifyContent="center"
+					_hover={{ bg: "var(--wl-bg-muted)" }}
 					color="var(--wl-text-subtle)"
-					_hover={{ color: "var(--wl-text)", bg: "var(--wl-bg-muted)" }}
 					onClick={onClear}
 					aria-label="Clear"
 				>
-					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-lg)" }}>
+					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)" }}>
 						delete_sweep
 					</span>
-					<Text as="span" display={{ base: "none", md: "inline" }}>
-						Clear
-					</Text>
 				</Box>
 				<Box
 					as="button"
@@ -258,7 +250,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 						{theme === "dark" ? "light_mode" : "dark_mode"}
 					</span>
 				</Box>
-				{/* Options menu */}
+				{/* Options menu - last */}
 				<Box position="relative" ref={optionsRef}>
 					<Box
 						as="button"
@@ -302,8 +294,9 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 								display="flex"
 								alignItems="center"
 								justifyContent="space-between"
+								gap={3}
 								px={4}
-								py={2}
+								py={2.5}
 								textAlign="left"
 								fontSize="sm"
 								color="var(--wl-text)"
@@ -315,22 +308,26 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 							>
 								<Text>Auto-select new requests</Text>
 								<Box
-									w={8}
-									h={4}
+									w={10}
+									h={6}
 									rounded="full"
 									bg={autoSelectNew ? "var(--wl-accent)" : "var(--wl-bg-muted)"}
 									position="relative"
 									transition="background 0.2s"
+									flexShrink={0}
+									borderWidth="1px"
+									borderColor={autoSelectNew ? "var(--wl-accent)" : "var(--wl-border-subtle)"}
 								>
 									<Box
 										position="absolute"
 										top={1}
 										left={autoSelectNew ? 5 : 1}
-										w={2}
-										h={2}
+										w={4}
+										h={4}
 										rounded="full"
 										bg="white"
 										transition="left 0.2s"
+										shadow="sm"
 									/>
 								</Box>
 							</Box>

@@ -1,6 +1,7 @@
 import {
 	bigserial,
 	index,
+	integer,
 	jsonb,
 	pgTable,
 	text,
@@ -9,12 +10,17 @@ import {
 	varchar,
 } from "drizzle-orm/pg-core";
 
-export const webhooks = pgTable("webhooks", {
-	id: bigserial("id", { mode: "number" }).primaryKey(),
-	webhookId: uuid("webhook_id").notNull().unique(),
-	name: varchar("name", { length: 255 }),
-	createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const webhooks = pgTable(
+	"webhooks",
+	{
+		id: bigserial("id", { mode: "number" }).primaryKey(),
+		webhookId: uuid("webhook_id").notNull().unique(),
+		name: varchar("name", { length: 255 }),
+		slug: varchar("slug", { length: 100 }).unique(),
+		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+	},
+	(table) => [index("idx_webhooks_slug").on(table.slug)],
+);
 
 export const requests = pgTable(
 	"requests",
@@ -30,6 +36,7 @@ export const requests = pgTable(
 		body: jsonb("body").$type<Record<string, unknown> | null>().default(null),
 		rawBody: text("raw_body"),
 		ip: varchar("ip", { length: 100 }),
+		status: integer("status").default(200),
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 	},
 	(table) => [

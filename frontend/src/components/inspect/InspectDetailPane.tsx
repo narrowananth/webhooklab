@@ -21,6 +21,19 @@ export function InspectDetailPane() {
 	const [bodyCopied, setBodyCopied] = useState(false);
 	const [copyAsOpen, setCopyAsOpen] = useState(false);
 	const [copyAsCopied, setCopyAsCopied] = useState<string | null>(null);
+	const [lastCopiedKey, setLastCopiedKey] = useState<string | null>(null);
+
+	const copyToClipboard = async (text: string, key: string) => {
+		try {
+			await navigator.clipboard.writeText(text);
+			setLastCopiedKey(key);
+			setTimeout(() => setLastCopiedKey(null), 2000);
+		} catch {
+			window.navigator.clipboard?.writeText(text);
+			setLastCopiedKey(key);
+			setTimeout(() => setLastCopiedKey(null), 2000);
+		}
+	};
 
 	if (!event) {
 		return (
@@ -159,12 +172,10 @@ export function InspectDetailPane() {
 						<Button
 							size="sm"
 							variant="ghost"
-							aria-label="Copy"
+							aria-label={copyAsCopied ? "Copied" : "Copy"}
 							aria-expanded={copyAsOpen}
 							aria-haspopup="true"
-							gap={{ base: 0, md: 2 }}
-							px={3}
-							py={2}
+							p={2}
 							fontWeight="normal"
 							color="var(--wl-text-subtle)"
 							_hover={{ color: "var(--wl-text)" }}
@@ -173,10 +184,9 @@ export function InspectDetailPane() {
 							justifyContent="center"
 							onClick={() => setCopyAsOpen(!copyAsOpen)}
 						>
-							<span className="material-symbols-outlined" style={{ fontSize: 18, color: "inherit" }}>
-								content_copy
+							<span className="material-symbols-outlined" style={{ fontSize: 18, color: copyAsCopied ? "var(--wl-success)" : "inherit" }}>
+								{copyAsCopied ? "check" : "content_copy"}
 							</span>
-							{copyAsCopied ? "Copied!" : "Copy"}
 						</Button>
 						{copyAsOpen && (
 							<>
@@ -336,36 +346,36 @@ export function InspectDetailPane() {
 					<Button
 						size="sm"
 						variant="ghost"
-						onClick={handleShare}
-						aria-label="Share"
-						px={3}
-						py={2}
-						fontSize="14px"
-						fontWeight={500}
+						onClick={handleCopyBody}
+						aria-label={bodyCopied ? "Copied" : "Copy body"}
+						p={2}
+						fontWeight="normal"
 						color="var(--wl-text-subtle)"
 						_hover={{ color: "var(--wl-text)" }}
 					>
-						<span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 4 }}>
-							link
+						<span className="material-symbols-outlined" style={{ fontSize: 18, color: bodyCopied ? "var(--wl-success)" : "inherit" }}>
+							{bodyCopied ? "check" : "content_copy"}
 						</span>
-						{shareCopied ? "Copied!" : "Share"}
 					</Button>
+					<Box
+						w="1px"
+						h={4}
+						bg="var(--wl-border-subtle)"
+						mx={1}
+					/>
 					<Button
 						size="sm"
 						variant="ghost"
-						onClick={handleCopyBody}
-						aria-label="Copy body"
-						px={3}
-						py={2}
-						fontSize="14px"
-						fontWeight={500}
+						onClick={handleShare}
+						aria-label={shareCopied ? "Copied" : "Share"}
+						p={2}
+						fontWeight="normal"
 						color="var(--wl-text-subtle)"
 						_hover={{ color: "var(--wl-text)" }}
 					>
-						<span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 4 }}>
-							content_copy
+						<span className="material-symbols-outlined" style={{ fontSize: 18, color: shareCopied ? "var(--wl-success)" : "inherit" }}>
+							{shareCopied ? "check" : "link"}
 						</span>
-						{bodyCopied ? "Copied!" : "Copy Body"}
 					</Button>
 				</Flex>
 			</Flex>
@@ -424,12 +434,12 @@ export function InspectDetailPane() {
 												p={1}
 												rounded="md"
 												_hover={{ bg: "var(--wl-bg-muted)" }}
-												onClick={() => navigator.clipboard.writeText(v)}
-												aria-label="Copy"
+												onClick={() => copyToClipboard(v, `h-${k}`)}
+												aria-label={lastCopiedKey === `h-${k}` ? "Copied" : "Copy"}
 												flexShrink={0}
 											>
-												<span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--wl-text-subtle)" }}>
-													content_copy
+												<span className="material-symbols-outlined" style={{ fontSize: 16, color: lastCopiedKey === `h-${k}` ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
+													{lastCopiedKey === `h-${k}` ? "check" : "content_copy"}
 												</span>
 											</Box>
 										</Flex>
@@ -481,12 +491,12 @@ export function InspectDetailPane() {
 												p={1}
 												rounded="md"
 												_hover={{ bg: "var(--wl-bg-muted)" }}
-												onClick={() => navigator.clipboard.writeText(v)}
-												aria-label="Copy"
+												onClick={() => copyToClipboard(v, `q-${k}`)}
+												aria-label={lastCopiedKey === `q-${k}` ? "Copied" : "Copy"}
 												flexShrink={0}
 											>
-												<span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--wl-text-subtle)" }}>
-													content_copy
+												<span className="material-symbols-outlined" style={{ fontSize: 16, color: lastCopiedKey === `q-${k}` ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
+													{lastCopiedKey === `q-${k}` ? "check" : "content_copy"}
 												</span>
 											</Box>
 										</Flex>

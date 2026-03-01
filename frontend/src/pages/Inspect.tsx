@@ -4,7 +4,7 @@
  * When filters active: server-side search. Otherwise: live WebSocket events.
  */
 import { Box, Spinner, Text } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { InspectHeader } from "../components/inspect/InspectHeader";
 import { RequestListPanel } from "../components/inspect/RequestListPanel";
@@ -16,7 +16,9 @@ import {
 	useSearchEventsQuery,
 	useEventStatsQuery,
 	useClearEventsMutation,
+	eventKeys,
 } from "../hooks/useWebhookQueries";
+import { useQueryClient } from "@tanstack/react-query";
 import { useWebSocket } from "../hooks/useWebSocket";
 import { useInspectStore } from "../store/useInspectStore";
 import { toFullWebhookUrl } from "../utils/truncateUrl";
@@ -41,11 +43,14 @@ export function Inspect() {
 		resetFilters,
 		searchFilter,
 		methodFilter,
+		statusFilter,
 		ipFilter,
 		requestIdFilter,
 		pageSize,
 		setPageSize,
+		isPaused,
 	} = useInspectStore();
+	const queryClient = useQueryClient();
 	const [searchPage, setSearchPage] = useState(1);
 
 	const { data: webhook, isLoading: webhookLoading } = useWebhookQuery(webhookId ?? undefined);
@@ -65,6 +70,7 @@ export function Inspect() {
 	const hasFilters = !!(
 		searchFilter?.trim() ||
 		(methodFilter && methodFilter !== "All") ||
+		(statusFilter && statusFilter !== "All") ||
 		ipFilter?.trim() ||
 		requestIdFilter?.trim()
 	);
@@ -72,6 +78,7 @@ export function Inspect() {
 	const searchQueryParams = {
 		search: searchFilter?.trim() || undefined,
 		method: methodFilter && methodFilter !== "All" ? methodFilter : undefined,
+		status: statusFilter && statusFilter !== "All" ? statusFilter : undefined,
 		ip: ipFilter?.trim() || undefined,
 		requestId: requestIdFilter ? Number.parseInt(requestIdFilter, 10) : undefined,
 		page: searchPage,
@@ -88,9 +95,18 @@ export function Inspect() {
 		if (eventsData?.events) setEvents(eventsData.events);
 	}, [eventsData?.events, setEvents]);
 
+	// When resuming from pause: refetch events from server to get logs stored while paused
+	const prevPausedRef = useRef(isPaused);
+	useEffect(() => {
+		if (prevPausedRef.current && !isPaused && resolvedId) {
+			queryClient.invalidateQueries({ queryKey: eventKeys.all(resolvedId) });
+		}
+		prevPausedRef.current = isPaused;
+	}, [isPaused, resolvedId, queryClient]);
+
 	useEffect(() => {
 		if (hasFilters) setSearchPage(1);
-	}, [searchFilter, methodFilter, ipFilter, requestIdFilter]);
+	}, [searchFilter, methodFilter, statusFilter, ipFilter, requestIdFilter]);
 
 	useEffect(() => {
 		setSearchPage(1);
@@ -127,7 +143,7 @@ export function Inspect() {
 		: undefined;
 
 	const fullWebhookUrl = toFullWebhookUrl(webhook?.url ?? "");
-	const handleCopy = () => navigator.clipboard.writeText(fullWebhookUrl);
+	const handleCopy = async () => navigator.clipboard.writeText(fullWebhookUrl);
 	const handleClear = async () => {
 		try {
 			await clearMutation.mutateAsync();
@@ -148,11 +164,13 @@ export function Inspect() {
 		);
 	}
 
-	if (
+	// Full-page spinner only for initial load (webhook + events). When filters are active,
+	// keep the UI visible and show loading state in the request list instead of blanking the app.
+	const showFullPageSpinner =
 		webhookLoading ||
-		(eventsLoading && !eventsData && !hasFilters) ||
-		(hasFilters && searchLoading && !searchData)
-	) {
+		(eventsLoading && !eventsData && !hasFilters);
+
+	if (showFullPageSpinner) {
 		return (
 			<Box
 				minH="100vh"
@@ -179,7 +197,7 @@ export function Inspect() {
 		>
 			<InspectHeader
 				webhookUrl={fullWebhookUrl}
-				connected={connected}
+				connected={connected && !isPaused}
 				onCopy={handleCopy}
 				onClear={handleClear}
 			/>
@@ -192,6 +210,7 @@ export function Inspect() {
 					pagination={pagination}
 					pageSize={pageSize}
 					onPageSizeChange={setPageSize}
+					isSearching={hasFilters && searchLoading}
 				/>
 				<InspectMainContent events={displayEvents} />
 			</Box>

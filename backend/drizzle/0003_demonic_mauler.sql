@@ -1,0 +1,1 @@
+ALTER TABLE "requests" ADD COLUMN "status" integer DEFAULT 200;

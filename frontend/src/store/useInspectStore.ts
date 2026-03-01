@@ -70,7 +70,7 @@ interface InspectState {
 export const useInspectStore = create<InspectState>()(
 	persist(
 		(set) => ({
-			theme: "dark",
+			theme: "light",
 			setTheme: (theme) => set({ theme }),
 			toggleTheme: () =>
 				set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),

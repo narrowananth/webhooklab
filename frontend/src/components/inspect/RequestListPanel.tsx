@@ -2,7 +2,7 @@
  * Left panel: search, Method/Status/IP/Request ID filters, scrollable request list.
  * When filterMode: server-side search, no client filtering. Otherwise: client-side filter.
  */
-import { Badge, Box, Button, Flex, Input, Text } from "@chakra-ui/react";
+import { Badge, Box, Button, Flex, Input, Spinner, Text } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import type { WebhookEvent } from "../../types";
 import { METHOD_BADGE_STYLES, BADGE_STYLE_GRAY } from "../../constants";
@@ -27,6 +27,8 @@ interface RequestListPanelProps {
 	};
 	pageSize?: number;
 	onPageSizeChange?: (size: number) => void;
+	/** When true, show loading state in list instead of blanking */
+	isSearching?: boolean;
 }
 
 export function RequestListPanel({
@@ -36,6 +38,7 @@ export function RequestListPanel({
 	pagination,
 	pageSize = 25,
 	onPageSizeChange,
+	isSearching = false,
 }: RequestListPanelProps) {
 	const {
 		searchFilter,
@@ -78,8 +81,11 @@ export function RequestListPanel({
 			)
 				return false;
 			if (statusFilter && statusFilter !== "All") {
-				if (statusFilter === "2xx") return true;
-				if (statusFilter === "4xx" || statusFilter === "5xx") return false;
+				const status = e.status ?? 200;
+				if (statusFilter === "2xx") return status >= 200 && status < 300;
+				if (statusFilter === "4xx") return status >= 400 && status < 500;
+				if (statusFilter === "5xx") return status >= 500 && status < 600;
+				return true;
 			}
 			return true;
 		});
@@ -88,9 +94,13 @@ export function RequestListPanel({
 	const hasActiveFilters = !!(
 		searchFilter?.trim() ||
 		(methodFilter && methodFilter !== "All") ||
+		(statusFilter && statusFilter !== "All") ||
 		ipFilter?.trim() ||
 		requestIdFilter?.trim()
 	);
+
+	// "Filters active" label only when IP or Request ID are filled (content in the collapsible section)
+	const hasAdvancedFilters = !!(ipFilter?.trim() || requestIdFilter?.trim());
 
 	// On mobile/tablet: hide list when a request is selected (detail takes full width)
 	const isMobileWithSelection = !!selectedEvent;
@@ -282,6 +292,36 @@ export function RequestListPanel({
 						)}
 					</Box>
 				</Flex>
+				{hasActiveFilters && (
+					<Button
+						size="sm"
+						variant="outline"
+						leftIcon={<span className="material-symbols-outlined" style={{ fontSize: 14 }}>clear_all</span>}
+						onClick={() => {
+							setSearchFilter("");
+							setMethodFilter("");
+							setStatusFilter("");
+							setIpFilter("");
+							setRequestIdFilter("");
+						}}
+						w="full"
+						mt={2}
+						justifyContent="center"
+						gap={2}
+						py={2}
+						fontSize="xs"
+						fontWeight={500}
+						color="var(--wl-text-muted)"
+						borderColor="var(--wl-border-subtle)"
+						_hover={{
+							bg: "var(--wl-bg-muted)",
+							borderColor: "var(--wl-border)",
+							color: "var(--wl-text)",
+						}}
+					>
+						Clear all filters
+					</Button>
+				)}
 				{/* IP + Request ID filters (collapsible) */}
 				<Box mt={2}>
 					<Box
@@ -298,7 +338,7 @@ export function RequestListPanel({
 						onClick={() => setFiltersExpanded(!filtersExpanded)}
 					>
 						<Text fontSize="xs" fontWeight="semibold" color="var(--wl-text-subtle)" lineHeight="1">
-							{hasActiveFilters ? "Filters active" : "More filters"}
+							{hasAdvancedFilters ? "Filters active" : "More filters"}
 						</Text>
 						<span
 							className="material-symbols-outlined"
@@ -371,21 +411,6 @@ export function RequestListPanel({
 									_placeholder={{ color: "var(--wl-text-subtle)" }}
 								/>
 							</Flex>
-							{hasActiveFilters && (
-								<Button
-									size="xs"
-									variant="ghost"
-									color="var(--wl-error)"
-									onClick={() => {
-										setSearchFilter("");
-										setMethodFilter("");
-										setIpFilter("");
-										setRequestIdFilter("");
-									}}
-								>
-									Clear all filters
-								</Button>
-							)}
 						</Flex>
 					)}
 				</Box>
@@ -393,7 +418,14 @@ export function RequestListPanel({
 
 			{/* Request list - only scrollable area */}
 			<Box flex={1} minH={0} overflowY="auto" px="var(--wl-fluid-sm)" py="var(--wl-fluid-sm)" css={{ "&::-webkit-scrollbar": { width: 6 } }}>
-				{filteredEvents.length === 0 ? (
+				{isSearching ? (
+					<Box p="var(--wl-fluid-xl)" display="flex" flexDir="column" alignItems="center" justifyContent="center" gap={3}>
+						<Spinner size="md" color="var(--wl-accent)" />
+						<Text fontSize="var(--wl-fluid-font-sm)" color="var(--wl-text-subtle)">
+							Searching...
+						</Text>
+					</Box>
+				) : filteredEvents.length === 0 ? (
 					<Box p="var(--wl-fluid-xl)" textAlign="center">
 						<Text fontSize="var(--wl-fluid-font-sm)" color="var(--wl-text-subtle)">
 							No requests yet
@@ -496,14 +528,26 @@ export function RequestListPanel({
 				>
 					{filterMode && pagination ? (
 						<>
-							<Button
-								size="sm"
-								variant="outline"
+							<Box
+								as="button"
+								px={2}
+								py={1}
+								rounded="md"
+								display="flex"
+								alignItems="center"
+								justifyContent="center"
+								borderWidth="1px"
+								borderColor="var(--wl-border-subtle)"
+								bg="var(--wl-bg)"
+								color="var(--wl-text-subtle)"
+								_hover={{ bg: "var(--wl-bg-muted)" }}
+								_disabled={{ opacity: 0.5, cursor: "not-allowed" }}
 								disabled={pagination.page <= 1}
 								onClick={pagination.onPrev}
+								aria-label="Previous page"
 							>
-								Prev
-							</Button>
+								<span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_left</span>
+							</Box>
 							<Flex align="center" gap={2}>
 								<Text fontSize="xs" color="var(--wl-text-subtle)">
 									Page {pagination.page} / {pagination.totalPages} ({pagination.total} total)
@@ -566,14 +610,26 @@ export function RequestListPanel({
 									)}
 								</Box>
 							</Flex>
-							<Button
-								size="sm"
-								variant="outline"
+							<Box
+								as="button"
+								px={2}
+								py={1}
+								rounded="md"
+								display="flex"
+								alignItems="center"
+								justifyContent="center"
+								borderWidth="1px"
+								borderColor="var(--wl-border-subtle)"
+								bg="var(--wl-bg)"
+								color="var(--wl-text-subtle)"
+								_hover={{ bg: "var(--wl-bg-muted)" }}
+								_disabled={{ opacity: 0.5, cursor: "not-allowed" }}
 								disabled={pagination.page >= pagination.totalPages}
 								onClick={pagination.onNext}
+								aria-label="Next page"
 							>
-								Next
-							</Button>
+								<span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
+							</Box>
 						</>
 					) : (
 						<Box position="relative">

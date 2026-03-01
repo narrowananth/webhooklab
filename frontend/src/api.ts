@@ -67,6 +67,7 @@ export async function searchEvents(
 	const params = new URLSearchParams();
 	if (opts.search) params.set("search", opts.search);
 	if (opts.method) params.set("method", opts.method);
+	if (opts.status) params.set("status", opts.status);
 	if (opts.ip) params.set("ip", opts.ip);
 	if (opts.requestId != null) params.set("requestId", String(opts.requestId));
 	params.set("page", String(opts.page ?? 1));

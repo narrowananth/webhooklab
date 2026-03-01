@@ -15,6 +15,7 @@ export interface WebhookEvent {
 	body: Record<string, unknown> | null;
 	rawBody: string | null;
 	ip: string | null;
+	status?: number;
 	timestamp: string;
 }
 
@@ -28,6 +29,7 @@ export interface EventsResponse {
 export interface SearchEventsParams {
 	search?: string;
 	method?: string;
+	status?: string;
 	ip?: string;
 	requestId?: number;
 	page?: number;

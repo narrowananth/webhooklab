@@ -124,9 +124,15 @@ router.get("/:inboxId", async (req, res) => {
 		const offset = (page - 1) * limit;
 		const search = typeof req.query.search === "string" ? req.query.search.slice(0, 200) : undefined;
 		const method = typeof req.query.method === "string" ? req.query.method.toUpperCase() : undefined;
+		const statusFilter = typeof req.query.status === "string" ? req.query.status : undefined;
 		const ip = typeof req.query.ip === "string" ? req.query.ip.slice(0, 45) : undefined;
 		const requestId = req.query.requestId != null ? Number(req.query.requestId) : undefined;
 
+		const VALID_STATUS_FILTERS = ["2xx", "4xx", "5xx"];
+		if (statusFilter && !VALID_STATUS_FILTERS.includes(statusFilter)) {
+			res.status(400).json({ error: "Invalid status filter — use 2xx, 4xx, or 5xx" });
+			return;
+		}
 		if (method && !VALID_METHODS.includes(method)) {
 			res.status(400).json({ error: "Invalid HTTP method filter" });
 			return;
@@ -147,7 +153,7 @@ router.get("/:inboxId", async (req, res) => {
 			return;
 		}
 
-		const hasFilters = search || method || ip || (requestId != null && !Number.isNaN(requestId));
+		const hasFilters = search || method || statusFilter || ip || (requestId != null && !Number.isNaN(requestId));
 
 		if (!hasFilters) {
 			const events = await db
@@ -175,6 +181,7 @@ router.get("/:inboxId", async (req, res) => {
 					body: e.body,
 					rawBody: e.rawBody,
 					ip: e.ip,
+					status: e.status ?? 200,
 					timestamp: e.createdAt,
 				})),
 				nextPageToken,
@@ -201,6 +208,15 @@ router.get("/:inboxId", async (req, res) => {
 			conditions.push(`id = $${paramIndex}`);
 			params.push(requestId);
 			paramIndex++;
+		}
+		if (statusFilter) {
+			if (statusFilter === "2xx") {
+				conditions.push(`COALESCE(status, 200) BETWEEN 200 AND 299`);
+			} else if (statusFilter === "4xx") {
+				conditions.push(`COALESCE(status, 200) BETWEEN 400 AND 499`);
+			} else if (statusFilter === "5xx") {
+				conditions.push(`COALESCE(status, 200) BETWEEN 500 AND 599`);
+			}
 		}
 		if (search) {
 			conditions.push(`(
@@ -236,6 +252,7 @@ router.get("/:inboxId", async (req, res) => {
 			body: row.body,
 			rawBody: row.raw_body,
 			ip: row.ip,
+			status: row.status ?? 200,
 			timestamp: row.created_at,
 		}));
 
@@ -280,6 +297,7 @@ router.get("/:inboxId/:eventId", async (req, res) => {
 			body: event.body,
 			rawBody: event.rawBody,
 			ip: event.ip,
+			status: event.status ?? 200,
 			timestamp: event.createdAt,
 		});
 	} catch (err) {
