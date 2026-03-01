@@ -259,6 +259,16 @@ code, pre, .font-mono {
 	vertical-align: middle;
 }
 
+/* Icon button hover - all icon buttons across the app */
+button:has(.material-symbols-outlined),
+[role="button"]:has(.material-symbols-outlined) {
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+button:has(.material-symbols-outlined):hover,
+[role="button"]:has(.material-symbols-outlined):hover {
+	background-color: var(--wl-bg-muted);
+}
+
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
 	width: 6px;

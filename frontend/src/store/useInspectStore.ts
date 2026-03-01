@@ -80,7 +80,7 @@ export const useInspectStore = create<InspectState>()(
 
 			methodFilter: "",
 			setMethodFilter: (methodFilter) => set({ methodFilter }),
-			statusFilter: "2xx",
+			statusFilter: "All",
 			setStatusFilter: (statusFilter) => set({ statusFilter }),
 			ipFilter: "",
 			setIpFilter: (ipFilter) => set({ ipFilter }),
@@ -104,7 +104,7 @@ export const useInspectStore = create<InspectState>()(
 				set({
 					selectedEvent: null,
 					methodFilter: "",
-					statusFilter: "2xx",
+					statusFilter: "All",
 					ipFilter: "",
 					requestIdFilter: "",
 					searchFilter: "",

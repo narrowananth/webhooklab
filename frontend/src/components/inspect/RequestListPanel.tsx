@@ -167,6 +167,8 @@ export function RequestListPanel({
 							color="var(--wl-text-muted)"
 							borderWidth="1px"
 							borderColor="var(--wl-border-subtle)"
+							_hover={{ bg: "var(--wl-bg-muted)", borderColor: "var(--wl-border)" }}
+							transition="background 0.15s, border-color 0.15s"
 							onClick={() => {
 								setMethodDropdownOpen(!methodDropdownOpen);
 								setStatusDropdownOpen(false);
@@ -237,6 +239,8 @@ export function RequestListPanel({
 							color="var(--wl-text-muted)"
 							borderWidth="1px"
 							borderColor="var(--wl-border-subtle)"
+							_hover={{ bg: "var(--wl-bg-muted)", borderColor: "var(--wl-border)" }}
+							transition="background 0.15s, border-color 0.15s"
 							onClick={() => {
 								setStatusDropdownOpen(!statusDropdownOpen);
 								setMethodDropdownOpen(false);
@@ -562,6 +566,8 @@ export function RequestListPanel({
 										rounded="md"
 										borderWidth="1px"
 										borderColor="var(--wl-border-subtle)"
+										_hover={{ bg: "var(--wl-bg-muted)" }}
+										transition="background 0.15s"
 										onClick={() => setPageSizeDropdownOpen(!pageSizeDropdownOpen)}
 									>
 										{pageSize}/page
@@ -643,6 +649,8 @@ export function RequestListPanel({
 								borderWidth="1px"
 								borderColor="var(--wl-border-subtle)"
 								color="var(--wl-text-subtle)"
+								_hover={{ bg: "var(--wl-bg-muted)" }}
+								transition="background 0.15s"
 								onClick={() => setPageSizeDropdownOpen(!pageSizeDropdownOpen)}
 							>
 								{pageSize} per page
