@@ -20,6 +20,7 @@
 	--wl-text: #0f172a;
 	--wl-text-secondary: #475569;
 	--wl-text-muted: #64748b;
+	--wl-text-subtle: #64748b;
 	--wl-text-disabled: #94a3b8;
 
 	/* Accent (professional blue) */
@@ -159,6 +160,7 @@
 	--wl-text: #e5e7eb;
 	--wl-text-secondary: #9ca3af;
 	--wl-text-muted: #6b7280;
+	--wl-text-subtle: #9ca3af;
 	--wl-text-disabled: #4b5563;
 
 	/* Accent */
@@ -207,6 +209,7 @@
 	/* Legacy aliases */
 	--wl-bg-subtle: var(--wl-surface);
 	--wl-bg-muted: var(--wl-elevated);
+	--wl-bg-hover: #1e293b;
 	--wl-border-subtle: var(--wl-border-muted);
 	--wl-selected-bg: var(--wl-accent-soft);
 	--wl-selected-border: var(--wl-accent);
@@ -268,6 +271,11 @@ button:has(.material-symbols-outlined),
 button:has(.material-symbols-outlined):hover,
 [role="button"]:has(.material-symbols-outlined):hover {
 	background-color: var(--wl-bg-hover);
+}
+/* Ensure icons are visible on hover - inherit full text color */
+button:has(.material-symbols-outlined):hover .material-symbols-outlined,
+[role="button"]:has(.material-symbols-outlined):hover .material-symbols-outlined {
+	color: var(--wl-text);
 }
 
 /* Custom scrollbar */

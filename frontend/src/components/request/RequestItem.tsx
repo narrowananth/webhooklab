@@ -60,11 +60,11 @@ export function RequestItem({ event, isSelected, onSelect, isNew }: RequestItemP
 			</div>
 			<div className="flex items-center gap-3 text-xs text-text-secondary leading-none">
 				<span className="flex items-center gap-1">
-					<span className="material-symbols-outlined text-sm">public</span>
+					<span className="material-symbols-outlined text-sm" style={{ color: "var(--wl-text-subtle)" }}>public</span>
 					{event.ip ?? "—"}
 				</span>
 				<span className="flex items-center gap-1">
-					<span className="material-symbols-outlined text-sm">data_object</span>
+					<span className="material-symbols-outlined text-sm" style={{ color: "var(--wl-text-subtle)" }}>data_object</span>
 					{formatSize(getRequestSizeBytes(event))}
 				</span>
 				<span>#{event.id}</span>

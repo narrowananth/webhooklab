@@ -184,7 +184,7 @@ export function InspectDetailPane() {
 							justifyContent="center"
 							onClick={() => setCopyAsOpen(!copyAsOpen)}
 						>
-							<span className="material-symbols-outlined" style={{ fontSize: 18, color: copyAsCopied ? "var(--wl-success)" : "inherit" }}>
+							<span className="material-symbols-outlined" style={{ fontSize: 18, color: copyAsCopied ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
 								{copyAsCopied ? "check" : "content_copy"}
 							</span>
 						</Button>
@@ -275,19 +275,19 @@ export function InspectDetailPane() {
 					#{event.id}
 				</Text>
 				<Flex align="center" gap={1}>
-					<span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+					<span className="material-symbols-outlined" style={{ fontSize: 14, color: "var(--wl-text-subtle)" }}>
 						public
 					</span>
 					{event.ip ?? "—"}
 				</Flex>
 				<Flex align="center" gap={1}>
-					<span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+					<span className="material-symbols-outlined" style={{ fontSize: 14, color: "var(--wl-text-subtle)" }}>
 						schedule
 					</span>
 					{formatRelativeTime(event.timestamp)}
 				</Flex>
 				<Flex align="center" gap={1}>
-					<span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+					<span className="material-symbols-outlined" style={{ fontSize: 14, color: "var(--wl-text-subtle)" }}>
 						data_object
 					</span>
 					{formatSize(requestSizeBytes)}
@@ -353,7 +353,7 @@ export function InspectDetailPane() {
 						color="var(--wl-text-subtle)"
 						_hover={{ color: "var(--wl-text)" }}
 					>
-						<span className="material-symbols-outlined" style={{ fontSize: 18, color: bodyCopied ? "var(--wl-success)" : "inherit" }}>
+						<span className="material-symbols-outlined" style={{ fontSize: 18, color: bodyCopied ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
 							{bodyCopied ? "check" : "content_copy"}
 						</span>
 					</Button>
@@ -373,7 +373,7 @@ export function InspectDetailPane() {
 						color="var(--wl-text-subtle)"
 						_hover={{ color: "var(--wl-text)" }}
 					>
-						<span className="material-symbols-outlined" style={{ fontSize: 18, color: shareCopied ? "var(--wl-success)" : "inherit" }}>
+						<span className="material-symbols-outlined" style={{ fontSize: 18, color: shareCopied ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
 							{shareCopied ? "check" : "link"}
 						</span>
 					</Button>
@@ -525,7 +525,7 @@ export function InspectDetailPane() {
 			>
 				<Flex gap={{ base: 3, md: 4 }} fontSize="12px" fontWeight={400} color="var(--wl-text-subtle)">
 					<Flex align="center" gap={1} as="span">
-						<span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+						<span className="material-symbols-outlined" style={{ fontSize: 12, color: "var(--wl-text-subtle)" }}>
 							data_object
 						</span>
 						<Text as="span">Size: {formatSize(requestSizeBytes)}</Text>

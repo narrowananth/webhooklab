@@ -157,7 +157,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 						borderLeftWidth="1px"
 						borderColor="var(--wl-border-subtle)"
 					>
-						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-md)" }}>
+						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-md)", color: urlCopied ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
 							{urlCopied ? "check" : "content_copy"}
 						</span>
 					</Box>
@@ -210,7 +210,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 					aria-label={isPaused ? "Resume" : "Pause"}
 					_hover={{ bg: "var(--wl-bg-hover)" }}
 				>
-					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)" }}>
+					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "inherit" }}>
 						{isPaused ? "play_arrow" : "pause"}
 					</span>
 				</Box>
@@ -228,7 +228,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 					onClick={onClear}
 					aria-label="Clear"
 				>
-					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)" }}>
+					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "var(--wl-text-subtle)" }}>
 						delete_sweep
 					</span>
 				</Box>
@@ -246,7 +246,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 					aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
 					onClick={toggleTheme}
 				>
-					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)" }}>
+					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "var(--wl-text-subtle)" }}>
 						{theme === "dark" ? "light_mode" : "dark_mode"}
 					</span>
 				</Box>
@@ -269,7 +269,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 							setOptionsOpen((v) => !v);
 						}}
 					>
-						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)" }}>
+						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "var(--wl-text-subtle)" }}>
 							more_vert
 						</span>
 					</Box>

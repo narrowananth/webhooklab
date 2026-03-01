@@ -131,7 +131,7 @@ export function RequestListPanel({
 						pointerEvents="none"
 						zIndex={1}
 					>
-						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)" }}>
+						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "var(--wl-text-subtle)" }}>
 							search
 						</span>
 					</Box>
@@ -175,7 +175,7 @@ export function RequestListPanel({
 							}}
 						>
 							Method: {methodFilter || "All"}
-							<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-md)" }}>
+							<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-md)", color: "var(--wl-text-subtle)" }}>
 								expand_more
 							</span>
 						</Box>
@@ -247,7 +247,7 @@ export function RequestListPanel({
 							}}
 						>
 							Status: {statusFilter || "All"}
-							<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-md)" }}>
+							<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-md)", color: "var(--wl-text-subtle)" }}>
 								expand_more
 							</span>
 						</Box>
@@ -300,7 +300,7 @@ export function RequestListPanel({
 					<Button
 						size="sm"
 						variant="outline"
-						leftIcon={<span className="material-symbols-outlined" style={{ fontSize: 14 }}>clear_all</span>}
+						leftIcon={<span className="material-symbols-outlined" style={{ fontSize: 14, color: "var(--wl-text-subtle)" }}>clear_all</span>}
 						onClick={() => {
 							setSearchFilter("");
 							setMethodFilter("");
@@ -348,6 +348,7 @@ export function RequestListPanel({
 							className="material-symbols-outlined"
 							style={{
 								fontSize: "var(--wl-icon-md)",
+								color: "var(--wl-text-subtle)",
 								transform: filtersExpanded ? "rotate(180deg)" : "none",
 								transition: "transform 0.2s",
 							}}
@@ -367,7 +368,7 @@ export function RequestListPanel({
 									pointerEvents="none"
 									zIndex={1}
 								>
-<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-lg)" }}>
+<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-lg)", color: "var(--wl-text-subtle)" }}>
 									public
 									</span>
 								</Box>
@@ -396,7 +397,7 @@ export function RequestListPanel({
 									pointerEvents="none"
 									zIndex={1}
 								>
-									<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-lg)" }}>
+									<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-lg)", color: "var(--wl-text-subtle)" }}>
 										tag
 									</span>
 								</Box>
@@ -494,13 +495,13 @@ export function RequestListPanel({
 								</Flex>
 								<Flex align="center" gap={3} mt={2} fontSize="12px" color="var(--wl-text-subtle)" lineHeight="1">
 									<Flex align="center" gap={1}>
-										<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-sm)" }}>
+										<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-sm)", color: "var(--wl-text-subtle)" }}>
 											public
 										</span>
 										{event.ip ?? "—"}
 									</Flex>
 									<Flex align="center" gap={1}>
-										<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-sm)" }}>
+										<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-sm)", color: "var(--wl-text-subtle)" }}>
 											data_object
 										</span>
 										{formatSize(getRequestSizeBytes(event))}
@@ -550,7 +551,7 @@ export function RequestListPanel({
 								onClick={pagination.onPrev}
 								aria-label="Previous page"
 							>
-								<span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_left</span>
+								<span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--wl-text-subtle)" }}>chevron_left</span>
 							</Box>
 							<Flex align="center" gap={2}>
 								<Text fontSize="xs" color="var(--wl-text-subtle)">
@@ -634,7 +635,7 @@ export function RequestListPanel({
 								onClick={pagination.onNext}
 								aria-label="Next page"
 							>
-								<span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
+								<span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--wl-text-subtle)" }}>chevron_right</span>
 							</Box>
 						</>
 					) : (
