@@ -129,27 +129,27 @@ export function InspectDetailPane() {
 
 	return (
 		<Box flex={1} display="flex" flexDir="column" overflow="hidden" bg="var(--wl-bg)">
-			{/* Header: Method + Path, Forward, Download */}
+			{/* Header: Method + Path, Copy, Download */}
 			<Flex
-				minH={12}
+				minH={8}
 				shrink={0}
 				align="center"
 				justify="space-between"
 				px="var(--wl-fluid-px)"
-				py="var(--wl-fluid-py)"
+				py={1.5}
 				borderBottomWidth="1px"
 				borderColor="var(--wl-border-subtle)"
 				bg="var(--wl-bg-subtle)"
 				gap={{ base: 2, md: 4 }}
 				flexWrap={{ base: "wrap", md: "nowrap" }}
 			>
-				<Flex align="center" gap={2} minW={0} flex={1} minH={10}>
+				<Flex align="center" gap={2} minW={0} flex={1}>
 					<Badge
 						colorPalette={METHOD_COLORS[event.method] ?? "gray"}
 						size="sm"
 						fontFamily="mono"
-						px={2}
-						py={1}
+						px={1.5}
+						py={0.5}
 						flexShrink={0}
 						lineHeight="1"
 					>
@@ -167,7 +167,7 @@ export function InspectDetailPane() {
 						{path}
 					</Text>
 				</Flex>
-				<Flex align="center" gap={1} flexShrink={0} minH={10}>
+				<Flex align="center" gap={1} flexShrink={0}>
 					<Box position="relative">
 						<Button
 							size="sm"
@@ -175,7 +175,7 @@ export function InspectDetailPane() {
 							aria-label={copyAsCopied ? "Copied" : "Copy"}
 							aria-expanded={copyAsOpen}
 							aria-haspopup="true"
-							p={2}
+							p={1.5}
 							fontWeight="normal"
 							color="var(--wl-text-subtle)"
 							_hover={{ color: "var(--wl-text)" }}
@@ -184,9 +184,9 @@ export function InspectDetailPane() {
 							justifyContent="center"
 							onClick={() => setCopyAsOpen(!copyAsOpen)}
 						>
-							<span className="material-symbols-outlined" style={{ fontSize: 18, color: copyAsCopied ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
-								{copyAsCopied ? "check" : "content_copy"}
-							</span>
+						<span className="material-symbols-outlined" style={{ fontSize: 16, color: copyAsCopied ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
+							{copyAsCopied ? "check" : "content_copy"}
+						</span>
 						</Button>
 						{copyAsOpen && (
 							<>
@@ -238,7 +238,7 @@ export function InspectDetailPane() {
 					/>
 					<Box
 						as="button"
-						p={2}
+						p={1.5}
 						rounded="md"
 						display="flex"
 						alignItems="center"
@@ -249,7 +249,7 @@ export function InspectDetailPane() {
 					>
 						<span
 							className="material-symbols-outlined"
-							style={{ fontSize: 20, color: "var(--wl-text-subtle)" }}
+							style={{ fontSize: 18, color: "var(--wl-text-subtle)" }}
 						>
 							download
 						</span>
@@ -259,9 +259,8 @@ export function InspectDetailPane() {
 
 			{/* Meta bar: #ID, IP, Time, Size, Content-Type */}
 			<Flex
-				minH={10}
 				px="var(--wl-fluid-px)"
-				py="var(--wl-fluid-py)"
+				py={1.5}
 				gap={4}
 				fontSize="xs"
 				color="var(--wl-text-subtle)"
@@ -301,8 +300,8 @@ export function InspectDetailPane() {
 
 			{/* Tabs + Share/Copy Body */}
 			<Flex
-				minH={12}
-				py="var(--wl-fluid-py)"
+				minH={8}
+				py={1.5}
 				px="var(--wl-fluid-px)"
 				gap="var(--wl-fluid-lg)"
 				borderBottomWidth="1px"
@@ -316,8 +315,8 @@ export function InspectDetailPane() {
 					<Box
 						key={tab.id}
 						as="button"
-						py={2}
-						fontSize="14px"
+						py={1}
+						fontSize="13px"
 						fontWeight={500}
 						borderBottomWidth="2px"
 						borderBottomColor={activeDetailTab === tab.id ? "var(--wl-accent)" : "transparent"}
@@ -348,12 +347,12 @@ export function InspectDetailPane() {
 						variant="ghost"
 						onClick={handleCopyBody}
 						aria-label={bodyCopied ? "Copied" : "Copy body"}
-						p={2}
+						p={1.5}
 						fontWeight="normal"
 						color="var(--wl-text-subtle)"
 						_hover={{ color: "var(--wl-text)" }}
 					>
-						<span className="material-symbols-outlined" style={{ fontSize: 18, color: bodyCopied ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
+						<span className="material-symbols-outlined" style={{ fontSize: 16, color: bodyCopied ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
 							{bodyCopied ? "check" : "content_copy"}
 						</span>
 					</Button>
@@ -368,12 +367,12 @@ export function InspectDetailPane() {
 						variant="ghost"
 						onClick={handleShare}
 						aria-label={shareCopied ? "Copied" : "Share"}
-						p={2}
+						p={1.5}
 						fontWeight="normal"
 						color="var(--wl-text-subtle)"
 						_hover={{ color: "var(--wl-text)" }}
 					>
-						<span className="material-symbols-outlined" style={{ fontSize: 18, color: shareCopied ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
+						<span className="material-symbols-outlined" style={{ fontSize: 16, color: shareCopied ? "var(--wl-success)" : "var(--wl-text-subtle)" }}>
 							{shareCopied ? "check" : "link"}
 						</span>
 					</Button>

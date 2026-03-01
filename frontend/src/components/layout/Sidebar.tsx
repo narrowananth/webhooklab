@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import type { WebhookEvent } from "../../types";
 import { RequestItem } from "../request/RequestItem";
 
-const METHODS = ["All", "GET", "POST", "PUT", "DELETE", "PATCH"];
+const METHODS = ["All", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"];
 const PAGE_SIZE_OPTIONS = [25, 50, 75, 100] as const;
 
 interface SidebarProps {

@@ -9,7 +9,7 @@ import { METHOD_BADGE_STYLES, BADGE_STYLE_GRAY } from "../../constants";
 import { useInspectStore } from "../../store/useInspectStore";
 import { formatSize, getRequestSizeBytes } from "../../utils/requestSize";
 
-const METHODS = ["All", "GET", "POST", "PUT", "DELETE", "PATCH"];
+const METHODS = ["All", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"];
 const STATUS_OPTIONS = ["All", "2xx", "4xx", "5xx"];
 
 const PAGE_SIZE_OPTIONS = [25, 50, 75, 100] as const;

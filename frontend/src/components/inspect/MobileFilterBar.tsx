@@ -7,7 +7,7 @@ import { useState } from "react";
 import { METHOD_BADGE_STYLES, BADGE_STYLE_GRAY } from "../../constants";
 import { useInspectStore } from "../../store/useInspectStore";
 
-const METHODS = ["All", "GET", "POST", "PUT", "DELETE"];
+const METHODS = ["All", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"];
 
 export function MobileFilterBar() {
 	const [showIp, setShowIp] = useState(false);

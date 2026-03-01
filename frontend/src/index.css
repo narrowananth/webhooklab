@@ -56,6 +56,10 @@
 	--wl-method-patch-fg: #a16207;
 	--wl-method-delete-bg: #fee2e2;
 	--wl-method-delete-fg: #b91c1c;
+	--wl-method-head-bg: #ccfbf1;
+	--wl-method-head-fg: #0d9488;
+	--wl-method-options-bg: #f3e8ff;
+	--wl-method-options-fg: #7c3aed;
 	--wl-method-gray-bg: #f1f5f9;
 	--wl-method-gray-fg: #475569;
 
@@ -196,6 +200,10 @@
 	--wl-method-patch-fg: #fde047;
 	--wl-method-delete-bg: #450a0a;
 	--wl-method-delete-fg: #fca5a5;
+	--wl-method-head-bg: #134e4a;
+	--wl-method-head-fg: #5eead4;
+	--wl-method-options-bg: #4c1d95;
+	--wl-method-options-fg: #c4b5fd;
 	--wl-method-gray-bg: #334155;
 	--wl-method-gray-fg: #94a3b8;
 
