@@ -151,7 +151,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 							} catch {}
 						}}
 						aria-label={urlCopied ? "Copied" : "Copy URL"}
-						_hover={{ bg: "var(--wl-bg-muted)" }}
+						_hover={{ bg: "var(--wl-bg-hover)" }}
 						color={urlCopied ? "var(--wl-success)" : "var(--wl-text-subtle)"}
 						transition="color 0.2s, background 0.15s"
 						borderLeftWidth="1px"
@@ -208,7 +208,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 					color={isPaused ? "var(--wl-text-subtle)" : "var(--wl-text)"}
 					onClick={togglePaused}
 					aria-label={isPaused ? "Resume" : "Pause"}
-					_hover={{ bg: "var(--wl-bg-muted)" }}
+					_hover={{ bg: "var(--wl-bg-hover)" }}
 				>
 					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)" }}>
 						{isPaused ? "play_arrow" : "pause"}
@@ -223,7 +223,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 					display="flex"
 					alignItems="center"
 					justifyContent="center"
-					_hover={{ bg: "var(--wl-bg-muted)" }}
+					_hover={{ bg: "var(--wl-bg-hover)" }}
 					color="var(--wl-text-subtle)"
 					onClick={onClear}
 					aria-label="Clear"
@@ -241,7 +241,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 					display="flex"
 					alignItems="center"
 					justifyContent="center"
-					_hover={{ bg: "var(--wl-bg-muted)" }}
+					_hover={{ bg: "var(--wl-bg-hover)" }}
 					color="var(--wl-text-subtle)"
 					aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
 					onClick={toggleTheme}
@@ -260,7 +260,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 						display="flex"
 						alignItems="center"
 						justifyContent="center"
-						_hover={{ bg: "var(--wl-bg-muted)" }}
+						_hover={{ bg: "var(--wl-bg-hover)" }}
 						color="var(--wl-text-subtle)"
 						aria-label="Options"
 						aria-expanded={optionsOpen}
@@ -300,7 +300,7 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 								textAlign="left"
 								fontSize="sm"
 								color="var(--wl-text)"
-								_hover={{ bg: "var(--wl-bg-muted)" }}
+								_hover={{ bg: "var(--wl-bg-hover)" }}
 								onClick={(e: React.MouseEvent) => {
 									e.stopPropagation();
 									toggleAutoSelectNew();

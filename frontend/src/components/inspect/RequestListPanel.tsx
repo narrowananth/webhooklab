@@ -167,7 +167,7 @@ export function RequestListPanel({
 							color="var(--wl-text-muted)"
 							borderWidth="1px"
 							borderColor="var(--wl-border-subtle)"
-							_hover={{ bg: "var(--wl-bg-muted)", borderColor: "var(--wl-border)" }}
+							_hover={{ bg: "var(--wl-bg-hover)", borderColor: "var(--wl-border)" }}
 							transition="background 0.15s, border-color 0.15s"
 							onClick={() => {
 								setMethodDropdownOpen(!methodDropdownOpen);
@@ -210,7 +210,7 @@ export function RequestListPanel({
 											px={3}
 											py={1.5}
 											fontSize="xs"
-											_hover={{ bg: "var(--wl-bg-muted)" }}
+											_hover={{ bg: "var(--wl-bg-hover)" }}
 											onClick={() => {
 												setMethodFilter(m === "All" ? "" : m);
 												setMethodDropdownOpen(false);
@@ -239,7 +239,7 @@ export function RequestListPanel({
 							color="var(--wl-text-muted)"
 							borderWidth="1px"
 							borderColor="var(--wl-border-subtle)"
-							_hover={{ bg: "var(--wl-bg-muted)", borderColor: "var(--wl-border)" }}
+							_hover={{ bg: "var(--wl-bg-hover)", borderColor: "var(--wl-border)" }}
 							transition="background 0.15s, border-color 0.15s"
 							onClick={() => {
 								setStatusDropdownOpen(!statusDropdownOpen);
@@ -282,7 +282,7 @@ export function RequestListPanel({
 											px={3}
 											py={1.5}
 											fontSize="xs"
-											_hover={{ bg: "var(--wl-bg-muted)" }}
+											_hover={{ bg: "var(--wl-bg-hover)" }}
 											onClick={() => {
 												setStatusFilter(s === "All" ? "" : s);
 												setStatusDropdownOpen(false);
@@ -318,7 +318,7 @@ export function RequestListPanel({
 						color="var(--wl-text-muted)"
 						borderColor="var(--wl-border-subtle)"
 						_hover={{
-							bg: "var(--wl-bg-muted)",
+							bg: "var(--wl-bg-hover)",
 							borderColor: "var(--wl-border)",
 							color: "var(--wl-text)",
 						}}
@@ -338,7 +338,7 @@ export function RequestListPanel({
 						px={2}
 						rounded="md"
 						lineHeight="1"
-						_hover={{ bg: "var(--wl-bg-muted)" }}
+						_hover={{ bg: "var(--wl-bg-hover)" }}
 						onClick={() => setFiltersExpanded(!filtersExpanded)}
 					>
 						<Text fontSize="xs" fontWeight="semibold" color="var(--wl-text-subtle)" lineHeight="1">
@@ -544,7 +544,7 @@ export function RequestListPanel({
 								borderColor="var(--wl-border-subtle)"
 								bg="var(--wl-bg)"
 								color="var(--wl-text-subtle)"
-								_hover={{ bg: "var(--wl-bg-muted)" }}
+								_hover={{ bg: "var(--wl-bg-hover)" }}
 								_disabled={{ opacity: 0.5, cursor: "not-allowed" }}
 								disabled={pagination.page <= 1}
 								onClick={pagination.onPrev}
@@ -566,7 +566,7 @@ export function RequestListPanel({
 										rounded="md"
 										borderWidth="1px"
 										borderColor="var(--wl-border-subtle)"
-										_hover={{ bg: "var(--wl-bg-muted)" }}
+										_hover={{ bg: "var(--wl-bg-hover)" }}
 										transition="background 0.15s"
 										onClick={() => setPageSizeDropdownOpen(!pageSizeDropdownOpen)}
 									>
@@ -602,7 +602,7 @@ export function RequestListPanel({
 														px={3}
 														py={1.5}
 														fontSize="xs"
-														_hover={{ bg: "var(--wl-bg-muted)" }}
+														_hover={{ bg: "var(--wl-bg-hover)" }}
 														onClick={() => {
 															onPageSizeChange(n);
 															setPageSizeDropdownOpen(false);
@@ -628,7 +628,7 @@ export function RequestListPanel({
 								borderColor="var(--wl-border-subtle)"
 								bg="var(--wl-bg)"
 								color="var(--wl-text-subtle)"
-								_hover={{ bg: "var(--wl-bg-muted)" }}
+								_hover={{ bg: "var(--wl-bg-hover)" }}
 								_disabled={{ opacity: 0.5, cursor: "not-allowed" }}
 								disabled={pagination.page >= pagination.totalPages}
 								onClick={pagination.onNext}
@@ -649,7 +649,7 @@ export function RequestListPanel({
 								borderWidth="1px"
 								borderColor="var(--wl-border-subtle)"
 								color="var(--wl-text-subtle)"
-								_hover={{ bg: "var(--wl-bg-muted)" }}
+								_hover={{ bg: "var(--wl-bg-hover)" }}
 								transition="background 0.15s"
 								onClick={() => setPageSizeDropdownOpen(!pageSizeDropdownOpen)}
 							>
@@ -685,7 +685,7 @@ export function RequestListPanel({
 												px={3}
 												py={1.5}
 												fontSize="xs"
-												_hover={{ bg: "var(--wl-bg-muted)" }}
+												_hover={{ bg: "var(--wl-bg-hover)" }}
 												onClick={() => {
 													onPageSizeChange(n);
 													setPageSizeDropdownOpen(false);

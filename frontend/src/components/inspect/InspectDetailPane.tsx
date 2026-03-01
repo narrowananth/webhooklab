@@ -219,7 +219,7 @@ export function InspectDetailPane() {
 											px={3}
 											py={2}
 											fontSize="sm"
-											_hover={{ bg: "var(--wl-bg-muted)" }}
+											_hover={{ bg: "var(--wl-bg-hover)" }}
 											onClick={() => handleCopyAs(opt)}
 										>
 											{opt.label}
@@ -243,7 +243,7 @@ export function InspectDetailPane() {
 						display="flex"
 						alignItems="center"
 						justifyContent="center"
-						_hover={{ bg: "var(--wl-bg-muted)" }}
+						_hover={{ bg: "var(--wl-bg-hover)" }}
 						onClick={handleDownload}
 						aria-label="Download"
 					>
@@ -433,7 +433,7 @@ export function InspectDetailPane() {
 												as="button"
 												p={1}
 												rounded="md"
-												_hover={{ bg: "var(--wl-bg-muted)" }}
+												_hover={{ bg: "var(--wl-bg-hover)" }}
 												onClick={() => copyToClipboard(v, `h-${k}`)}
 												aria-label={lastCopiedKey === `h-${k}` ? "Copied" : "Copy"}
 												flexShrink={0}
@@ -490,7 +490,7 @@ export function InspectDetailPane() {
 												as="button"
 												p={1}
 												rounded="md"
-												_hover={{ bg: "var(--wl-bg-muted)" }}
+												_hover={{ bg: "var(--wl-bg-hover)" }}
 												onClick={() => copyToClipboard(v, `q-${k}`)}
 												aria-label={lastCopiedKey === `q-${k}` ? "Copied" : "Copy"}
 												flexShrink={0}

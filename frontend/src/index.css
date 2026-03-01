@@ -68,6 +68,7 @@
 	/* Legacy aliases */
 	--wl-bg-subtle: var(--wl-elevated);
 	--wl-bg-muted: var(--wl-elevated);
+	--wl-bg-hover: #e2e8f0;
 	--wl-border-subtle: var(--wl-border-muted);
 	--wl-selected-bg: var(--wl-accent-soft);
 	--wl-selected-border: var(--wl-accent);
@@ -266,7 +267,7 @@ button:has(.material-symbols-outlined),
 }
 button:has(.material-symbols-outlined):hover,
 [role="button"]:has(.material-symbols-outlined):hover {
-	background-color: var(--wl-bg-muted);
+	background-color: var(--wl-bg-hover);
 }
 
 /* Custom scrollbar */

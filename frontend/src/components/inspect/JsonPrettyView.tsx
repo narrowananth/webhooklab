@@ -93,7 +93,7 @@ export function JsonPrettyView({ data }: { data: unknown }) {
 			{lines.map((line, idx) => {
 				const segments = highlightJsonLine(line);
 				return (
-					<Flex key={idx} gap={4} _hover={{ bg: "var(--wl-bg-muted)" }}>
+					<Flex key={idx} gap={4} _hover={{ bg: "var(--wl-bg-hover)" }}>
 						<Text
 							as="span"
 							w={8}
