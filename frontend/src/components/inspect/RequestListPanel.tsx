@@ -29,6 +29,8 @@ interface RequestListPanelProps {
 	onPageSizeChange?: (size: number) => void;
 	/** When true, show loading state in list instead of blanking */
 	isSearching?: boolean;
+	/** When true, show subtle loading indicator while keeping list visible (e.g. page size change) */
+	isRefetching?: boolean;
 }
 
 export function RequestListPanel({
@@ -39,6 +41,7 @@ export function RequestListPanel({
 	pageSize = 25,
 	onPageSizeChange,
 	isSearching = false,
+	isRefetching = false,
 }: RequestListPanelProps) {
 	const {
 		searchFilter,
@@ -422,8 +425,40 @@ export function RequestListPanel({
 			</Box>
 
 			{/* Request list - only scrollable area */}
-			<Box flex={1} minH={0} overflowY="auto" px="var(--wl-fluid-sm)" py="var(--wl-fluid-sm)" css={{ "&::-webkit-scrollbar": { width: 6 } }}>
-				{isSearching ? (
+			<Box flex={1} minH={0} overflowY="auto" px="var(--wl-fluid-sm)" py="var(--wl-fluid-sm)" position="relative" css={{ "&::-webkit-scrollbar": { width: 6 } }}>
+				{/* Loading overlay - covers entire list area when refetching */}
+				{isRefetching && (
+					<Flex
+						position="absolute"
+						inset={0}
+						zIndex={10}
+						align="center"
+						justify="center"
+						bg="var(--wl-surface)"
+						opacity={filteredEvents.length > 0 ? 0.9 : 1}
+						transition="opacity 0.15s"
+					>
+						<Flex
+							flexDir="column"
+							align="center"
+							justify="center"
+							gap={3}
+							px={6}
+							py={8}
+							bg="var(--wl-bg-subtle)"
+							rounded="lg"
+							borderWidth="1px"
+							borderColor="var(--wl-border-subtle)"
+							shadow="md"
+						>
+							<Spinner size="lg" color="var(--wl-accent)" />
+							<Text fontSize="sm" fontWeight={500} color="var(--wl-text)">
+								{filteredEvents.length > 0 ? "Loading requests..." : "Searching..."}
+							</Text>
+						</Flex>
+					</Flex>
+				)}
+				{isSearching && filteredEvents.length === 0 ? (
 					<Box p="var(--wl-fluid-xl)" display="flex" flexDir="column" alignItems="center" justifyContent="center" gap={3}>
 						<Spinner size="md" color="var(--wl-accent)" />
 						<Text fontSize="var(--wl-fluid-font-sm)" color="var(--wl-text-subtle)">
@@ -516,7 +551,7 @@ export function RequestListPanel({
 				)}
 			</Box>
 
-			{/* Page size dropdown + pagination bar - always visible (height matches detail pane footer) */}
+			{/* Page size dropdown + pagination bar - single line */}
 			{onPageSizeChange && (
 				<Flex
 					minH="var(--wl-footer-bar-height)"
@@ -528,15 +563,17 @@ export function RequestListPanel({
 					justify={filterMode && pagination ? "space-between" : "center"}
 					gap={2}
 					flexShrink={0}
-					flexWrap="wrap"
+					flexWrap="nowrap"
 					bg="var(--wl-bg-subtle)"
 				>
 					{filterMode && pagination ? (
 						<>
+							<Flex align="center" gap={2} flex={1} minW={0} flexWrap="nowrap">
 							<Box
 								as="button"
 								px={2}
 								py={1}
+								flexShrink={0}
 								rounded="md"
 								display="flex"
 								alignItems="center"
@@ -553,10 +590,9 @@ export function RequestListPanel({
 							>
 								<span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--wl-text-subtle)" }}>chevron_left</span>
 							</Box>
-							<Flex align="center" gap={2}>
-								<Text fontSize="xs" color="var(--wl-text-subtle)">
-									Page {pagination.page} / {pagination.totalPages} ({pagination.total} total)
-								</Text>
+							<Text fontSize="xs" color="var(--wl-text-subtle)" whiteSpace="nowrap" flexShrink={0}>
+								Page {pagination.page} / {pagination.totalPages} ({pagination.total})
+							</Text>
 								<Box position="relative">
 									<Box
 										as="button"
@@ -621,6 +657,7 @@ export function RequestListPanel({
 								as="button"
 								px={2}
 								py={1}
+								flexShrink={0}
 								rounded="md"
 								display="flex"
 								alignItems="center"

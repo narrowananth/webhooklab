@@ -55,7 +55,7 @@ export function Inspect() {
 
 	const { data: webhook, isLoading: webhookLoading } = useWebhookQuery(webhookId ?? undefined);
 	const resolvedId = useResolvedWebhookId(webhookId ?? undefined, webhook);
-	const { data: eventsData, isLoading: eventsLoading } = useEventsQuery(
+	const { data: eventsData, isLoading: eventsLoading, isFetching: eventsFetching } = useEventsQuery(
 		resolvedId,
 		1,
 		pageSize,
@@ -85,7 +85,7 @@ export function Inspect() {
 		limit: pageSize,
 	};
 
-	const { data: searchData, isLoading: searchLoading } = useSearchEventsQuery(
+	const { data: searchData, isLoading: searchLoading, isFetching: searchFetching } = useSearchEventsQuery(
 		resolvedId,
 		searchQueryParams,
 		hasFilters,
@@ -211,6 +211,7 @@ export function Inspect() {
 					pageSize={pageSize}
 					onPageSizeChange={setPageSize}
 					isSearching={hasFilters && searchLoading}
+					isRefetching={hasFilters ? searchFetching : eventsFetching}
 				/>
 				<InspectMainContent events={displayEvents} />
 			</Box>

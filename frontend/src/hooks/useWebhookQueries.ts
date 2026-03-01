@@ -3,6 +3,7 @@
  * Handles caching, background refetching, and invalidation.
  */
 import {
+	keepPreviousData,
 	useMutation,
 	useQuery,
 	useQueryClient,
@@ -58,6 +59,7 @@ export function useEventsQuery(inboxId: string | undefined, page = 1, limit = 50
 		queryKey: [...eventKeys.all(inboxId ?? ""), page, limit],
 		queryFn: () => getEvents(inboxId!, page, limit),
 		enabled: !!inboxId,
+		placeholderData: keepPreviousData,
 	});
 }
 
@@ -71,6 +73,7 @@ export function useSearchEventsQuery(
 		queryKey: eventKeys.search(inboxId ?? "", params),
 		queryFn: () => searchEvents(inboxId!, params),
 		enabled: !!inboxId && enabled,
+		placeholderData: keepPreviousData,
 	});
 }
 
