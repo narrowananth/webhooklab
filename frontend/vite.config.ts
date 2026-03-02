@@ -9,6 +9,18 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		plugins: [react(), tsconfigPaths()],
+		build: {
+			rollupOptions: {
+				output: {
+					manualChunks: {
+						vendor: ["react", "react-dom", "react-router-dom"],
+						chakra: ["@chakra-ui/react", "@emotion/react"],
+						query: ["@tanstack/react-query"],
+					},
+				},
+			},
+			chunkSizeWarningLimit: 600,
+		},
 		server: {
 			port: env.VITE_PORT ? Number(env.VITE_PORT) : undefined,
 			proxy: {
@@ -17,10 +29,7 @@ export default defineConfig(({ mode }) => {
 				"/webhook": {
 					target: backendUrl,
 					changeOrigin: true,
-					bypass(req) {
-						// GET /webhook/* → serve SPA (inspect UI); POST etc → proxy to backend (capture)
-						if (req.method === "GET") return "/index.html";
-					},
+					// Always proxy to backend. /inspect/:id is for browser preview.
 				},
 			},
 		},

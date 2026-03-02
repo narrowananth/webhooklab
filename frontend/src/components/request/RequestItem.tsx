@@ -45,7 +45,7 @@ export function RequestItem({ event, isSelected, onSelect, isNew }: RequestItemP
 						style={{
 							backgroundColor: badgeStyle.bg,
 							color: badgeStyle.fg,
-							borderColor: badgeStyle.border,
+							borderColor: "var(--wl-border-subtle)",
 						}}
 					>
 						{event.method === "DELETE" ? "DEL" : event.method}

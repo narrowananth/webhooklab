@@ -1,6 +1,6 @@
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { Router } from "express";
 import { Router as createRouter } from "express";
-import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { pool } from "../../db/index.js";
 import { requests, webhooks } from "../../db/schema.js";
@@ -25,11 +25,7 @@ router.post("/:eventId/replay", async (req, res) => {
 			return;
 		}
 
-		const [event] = await db
-			.select()
-			.from(requests)
-			.where(eq(requests.id, id))
-			.limit(1);
+		const [event] = await db.select().from(requests).where(eq(requests.id, id)).limit(1);
 
 		if (!event) {
 			res.status(404).json({ error: "Event not found" });
@@ -37,12 +33,20 @@ router.post("/:eventId/replay", async (req, res) => {
 		}
 
 		const headers: Record<string, string> = { ...(event.headers ?? {}) };
-		if (!headers["content-type"] && event.body) {
-			headers["content-type"] = "application/json";
+		// Only set Content-Type if missing and we have a body
+		if (!headers["content-type"] && !Object.keys(headers).some((k) => k.toLowerCase() === "content-type")) {
+			if (event.rawBody) {
+				// Infer from body: XML vs JSON vs form
+				const r = event.rawBody.trim();
+				if (r.startsWith("<")) headers["content-type"] = "application/xml";
+				else if (r.startsWith("{") || r.startsWith("[")) headers["content-type"] = "application/json";
+				else if (r.includes("=") && r.includes("&")) headers["content-type"] = "application/x-www-form-urlencoded";
+			} else if (event.body) {
+				headers["content-type"] = "application/json";
+			}
 		}
 
-		const body =
-			event.rawBody ?? (event.body ? JSON.stringify(event.body) : undefined);
+		const body = event.rawBody ?? (event.body ? JSON.stringify(event.body) : undefined);
 
 		const response = await fetch(targetUrl, {
 			method: event.method,
@@ -122,8 +126,10 @@ router.get("/:inboxId", async (req, res) => {
 		const page = Math.max(1, Number(req.query.page) || 1);
 		const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
 		const offset = (page - 1) * limit;
-		const search = typeof req.query.search === "string" ? req.query.search.slice(0, 200) : undefined;
-		const method = typeof req.query.method === "string" ? req.query.method.toUpperCase() : undefined;
+		const search =
+			typeof req.query.search === "string" ? req.query.search.slice(0, 200) : undefined;
+		const method =
+			typeof req.query.method === "string" ? req.query.method.toUpperCase() : undefined;
 		const statusFilter = typeof req.query.status === "string" ? req.query.status : undefined;
 		const ip = typeof req.query.ip === "string" ? req.query.ip.slice(0, 45) : undefined;
 		const requestId = req.query.requestId != null ? Number(req.query.requestId) : undefined;
@@ -153,7 +159,12 @@ router.get("/:inboxId", async (req, res) => {
 			return;
 		}
 
-		const hasFilters = search || method || statusFilter || ip || (requestId != null && !Number.isNaN(requestId));
+		const hasFilters =
+			search ||
+			method ||
+			statusFilter ||
+			ip ||
+			(requestId != null && !Number.isNaN(requestId));
 
 		if (!hasFilters) {
 			const events = await db
@@ -186,7 +197,12 @@ router.get("/:inboxId", async (req, res) => {
 				})),
 				nextPageToken,
 				total: count,
-				pagination: { page, limit, total: count, totalPages: Math.ceil(count / limit) || 1 },
+				pagination: {
+					page,
+					limit,
+					total: count,
+					totalPages: Math.ceil(count / limit) || 1,
+				},
 			});
 		}
 
@@ -211,11 +227,11 @@ router.get("/:inboxId", async (req, res) => {
 		}
 		if (statusFilter) {
 			if (statusFilter === "2xx") {
-				conditions.push(`COALESCE(status, 200) BETWEEN 200 AND 299`);
+				conditions.push("COALESCE(status, 200) BETWEEN 200 AND 299");
 			} else if (statusFilter === "4xx") {
-				conditions.push(`COALESCE(status, 200) BETWEEN 400 AND 499`);
+				conditions.push("COALESCE(status, 200) BETWEEN 400 AND 499");
 			} else if (statusFilter === "5xx") {
-				conditions.push(`COALESCE(status, 200) BETWEEN 500 AND 599`);
+				conditions.push("COALESCE(status, 200) BETWEEN 500 AND 599");
 			}
 		}
 		if (search) {

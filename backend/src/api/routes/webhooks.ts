@@ -1,15 +1,15 @@
 import { randomUUID } from "node:crypto";
-import type { Router } from "express";
-import { Router as createRouter } from "express";
 import { eq } from "drizzle-orm";
+import type { Request, Router } from "express";
+import { Router as createRouter } from "express";
+import { config } from "../../config.js";
 import { db } from "../../db.js";
 import { webhooks } from "../../db/schema.js";
-import { config } from "../../config.js";
 
 const router: Router = createRouter();
 
 /** Webhook URLs use frontend origin so we never expose backend URL */
-function getWebhookBaseUrl(req?: { headers: { origin?: string; referer?: string }; protocol?: string; get?: (name: string) => string }): string {
+function getWebhookBaseUrl(req?: Request): string {
 	const base = config.FRONTEND_URL.replace(/\/$/, "");
 	if (base !== "*" && base !== "") return base;
 	// When FRONTEND_URL is "*", use request origin (e.g. http://localhost:5173)
@@ -23,8 +23,10 @@ function getWebhookBaseUrl(req?: { headers: { origin?: string; referer?: string 
 				/* ignore */
 			}
 		}
-		const proto = req.get?.("x-forwarded-proto") ?? req.protocol ?? "http";
-		const host = req.get?.("x-forwarded-host") ?? req.get?.("host") ?? "localhost:5173";
+		const protoRaw = req.get?.("x-forwarded-proto");
+		const hostRaw = req.get?.("x-forwarded-host") ?? req.get?.("host");
+		const proto = (Array.isArray(protoRaw) ? protoRaw[0] : protoRaw) ?? req.protocol ?? "http";
+		const host = (Array.isArray(hostRaw) ? hostRaw[0] : hostRaw) ?? "localhost:5173";
 		return `${proto}://${host}`;
 	}
 	return "http://localhost:5173";
@@ -36,8 +38,7 @@ router.post("/create", async (req, res) => {
 		const webhookId = randomUUID();
 
 		// Slug: alphanumeric, hyphens, underscores only; 3-100 chars
-		const cleanSlug =
-			slug && /^[a-zA-Z0-9_-]{3,100}$/.test(slug) ? slug.toLowerCase() : null;
+		const cleanSlug = slug && /^[a-zA-Z0-9_-]{3,100}$/.test(slug) ? slug.toLowerCase() : null;
 
 		await db.insert(webhooks).values({
 			webhookId,
@@ -57,11 +58,7 @@ router.post("/create", async (req, res) => {
 router.get("/by-slug/:slug", async (req, res) => {
 	try {
 		const { slug } = req.params;
-		const [row] = await db
-			.select()
-			.from(webhooks)
-			.where(eq(webhooks.slug, slug))
-			.limit(1);
+		const [row] = await db.select().from(webhooks).where(eq(webhooks.slug, slug)).limit(1);
 
 		if (!row) {
 			res.status(404).json({ error: "Webhook not found" });
@@ -86,11 +83,7 @@ router.get("/by-slug/:slug", async (req, res) => {
 router.get("/:id", async (req, res) => {
 	try {
 		const { id } = req.params;
-		const [row] = await db
-			.select()
-			.from(webhooks)
-			.where(eq(webhooks.webhookId, id))
-			.limit(1);
+		const [row] = await db.select().from(webhooks).where(eq(webhooks.webhookId, id)).limit(1);
 
 		if (!row) {
 			res.status(404).json({ error: "Webhook not found" });

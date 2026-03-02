@@ -52,13 +52,15 @@ export function EventDetailModal({
 		}
 	}
 
-	const copyCurl = () => {
+	const copyCurl = async () => {
 		const headers = Object.entries(event.headers ?? {})
 			.map(([k, v]) => `-H '${k}: ${v}'`)
 			.join(" ");
 		const body = event.rawBody ?? (event.body ? JSON.stringify(event.body) : "");
 		const curl = `curl -X ${event.method} ${event.url} ${headers}${body ? ` -d '${body}'` : ""}`;
-		navigator.clipboard.writeText(curl);
+		await navigator.clipboard.writeText(curl);
+		setCurlCopied(true);
+		setTimeout(() => setCurlCopied(false), 2000);
 	};
 
 	return (
@@ -162,18 +164,17 @@ export function EventDetailModal({
 								size="xs"
 								variant="outline"
 								onClick={copyCurl}
-								leftIcon={
-									<span
-										className="material-symbols-outlined"
-										style={{
-											fontSize: 14,
-											color: curlCopied ? "var(--wl-success)" : undefined,
-										}}
-									>
-										{curlCopied ? "check" : "content_copy"}
-									</span>
-								}
+								gap={2}
 							>
+								<span
+									className="material-symbols-outlined"
+									style={{
+										fontSize: 14,
+										color: curlCopied ? "var(--wl-success)" : undefined,
+									}}
+								>
+									{curlCopied ? "check" : "content_copy"}
+								</span>
 								{curlCopied ? "Copied!" : "Copy cURL"}
 							</Button>
 						</Flex>

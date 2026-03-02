@@ -1,5 +1,5 @@
-import type { Request, Response } from "express";
 import { eq } from "drizzle-orm";
+import type { Request, Response } from "express";
 import { db } from "../db.js";
 import { requests, webhooks } from "../db/schema.js";
 import { broadcastToWebhook } from "../websocket/server.js";
@@ -51,8 +51,7 @@ export async function captureWebhook(
 			}
 		}
 
-		const fullUrl =
-			req.protocol + "://" + req.get("host") + req.originalUrl;
+		const fullUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
 		const queryParams: Record<string, string> = {};
 		for (const [k, v] of Object.entries(req.query)) {
 			queryParams[k] = typeof v === "string" ? v : String(v);

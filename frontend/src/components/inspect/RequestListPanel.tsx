@@ -303,7 +303,7 @@ export function RequestListPanel({
 					<Button
 						size="sm"
 						variant="outline"
-						leftIcon={<span className="material-symbols-outlined" style={{ fontSize: 14, color: "var(--wl-text-subtle)" }}>clear_all</span>}
+						gap={2}
 						onClick={() => {
 							setSearchFilter("");
 							setMethodFilter("");
@@ -314,7 +314,6 @@ export function RequestListPanel({
 						w="full"
 						mt={2}
 						justifyContent="center"
-						gap={2}
 						py={2}
 						fontSize="xs"
 						fontWeight={500}
@@ -425,7 +424,32 @@ export function RequestListPanel({
 			</Box>
 
 			{/* Request list - only scrollable area */}
-			<Box flex={1} minH={0} overflowY="auto" px="var(--wl-fluid-sm)" py="var(--wl-fluid-sm)" position="relative" css={{ "&::-webkit-scrollbar": { width: 6 } }}>
+			<Box
+				flex={1}
+				minH={0}
+				overflowY="auto"
+				px="var(--wl-fluid-sm)"
+				py="var(--wl-fluid-sm)"
+				position="relative"
+				css={{
+					scrollbarWidth: "thin",
+					scrollbarColor: "var(--wl-border-subtle) var(--wl-surface)",
+					"&::-webkit-scrollbar": {
+						width: 8,
+					},
+					"&::-webkit-scrollbar-track": {
+						background: "var(--wl-surface)",
+					},
+					"&::-webkit-scrollbar-thumb": {
+						background: "var(--wl-border-subtle)",
+						borderRadius: 4,
+						border: "2px solid var(--wl-surface)",
+					},
+					"&::-webkit-scrollbar-thumb:hover": {
+						background: "var(--wl-border)",
+					},
+				}}
+			>
 				{/* Loading overlay - covers entire list area when refetching */}
 				{isRefetching && (
 					<Flex
@@ -569,15 +593,13 @@ export function RequestListPanel({
 					{filterMode && pagination ? (
 						<>
 							<Flex align="center" gap={2} flex={1} minW={0} flexWrap="nowrap">
-							<Box
-								as="button"
+							<Button
+								variant="plain"
+								size="xs"
 								px={2}
 								py={1}
 								flexShrink={0}
 								rounded="md"
-								display="flex"
-								alignItems="center"
-								justifyContent="center"
 								borderWidth="1px"
 								borderColor="var(--wl-border-subtle)"
 								bg="var(--wl-bg)"
@@ -589,7 +611,7 @@ export function RequestListPanel({
 								aria-label="Previous page"
 							>
 								<span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--wl-text-subtle)" }}>chevron_left</span>
-							</Box>
+							</Button>
 							<Text fontSize="xs" color="var(--wl-text-subtle)" whiteSpace="nowrap" flexShrink={0}>
 								Page {pagination.page} / {pagination.totalPages} ({pagination.total})
 							</Text>
@@ -653,15 +675,13 @@ export function RequestListPanel({
 									)}
 								</Box>
 							</Flex>
-							<Box
-								as="button"
+							<Button
+								variant="plain"
+								size="xs"
 								px={2}
 								py={1}
 								flexShrink={0}
 								rounded="md"
-								display="flex"
-								alignItems="center"
-								justifyContent="center"
 								borderWidth="1px"
 								borderColor="var(--wl-border-subtle)"
 								bg="var(--wl-bg)"
@@ -673,7 +693,7 @@ export function RequestListPanel({
 								aria-label="Next page"
 							>
 								<span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--wl-text-subtle)" }}>chevron_right</span>
-							</Box>
+							</Button>
 						</>
 					) : (
 						<Box position="relative">

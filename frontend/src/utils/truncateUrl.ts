@@ -19,7 +19,7 @@ export function getPathFromUrl(url: string): string {
 /** Truncate path for mobile display */
 export function truncatePath(path: string, maxLen = 28): string {
 	if (path.length <= maxLen) return path;
-	return path.slice(0, maxLen - 3) + "...";
+	return `${path.slice(0, maxLen - 3)}...`;
 }
 
 /** Truncate URL to show end (last part) when too long - keeps the unique ID visible */

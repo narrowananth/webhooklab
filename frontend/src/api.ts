@@ -2,18 +2,13 @@
  * WebhookLab API client.
  * All endpoints used by TanStack Query hooks.
  */
-import type {
-	EventsResponse,
-	SearchEventsParams,
-	WebhookEvent,
-	WebhookInbox,
-} from "./types";
+import type { EventsResponse, SearchEventsParams, WebhookEvent, WebhookInbox } from "./types";
 
 const API = "/api";
 
-export async function createWebhook(
-	opts?: { name?: string; slug?: string },
-): Promise<WebhookInbox & { url: string; slug?: string }> {
+export async function createWebhook(opts?: { name?: string; slug?: string }): Promise<
+	WebhookInbox & { url: string; slug?: string }
+> {
 	const res = await fetch(`${API}/webhooks/create`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -24,8 +19,7 @@ export async function createWebhook(
 }
 
 /** UUID v4 format - used to distinguish UUID from slug in /webhook/:id */
-export const UUID_REGEX =
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function getWebhook(id: string): Promise<WebhookInbox> {
 	const res = await fetch(`${API}/webhooks/${id}`);
@@ -34,9 +28,7 @@ export async function getWebhook(id: string): Promise<WebhookInbox> {
 }
 
 /** Fetch webhook by UUID or slug (for /webhook/:id routes) */
-export async function getWebhookByIdOrSlug(
-	idOrSlug: string,
-): Promise<WebhookInbox> {
+export async function getWebhookByIdOrSlug(idOrSlug: string): Promise<WebhookInbox> {
 	if (UUID_REGEX.test(idOrSlug)) {
 		return getWebhook(idOrSlug);
 	}
@@ -49,11 +41,7 @@ export async function getWebhookBySlug(slug: string): Promise<WebhookInbox> {
 	return res.json();
 }
 
-export async function getEvents(
-	inboxId: string,
-	page = 1,
-	limit = 25,
-): Promise<EventsResponse> {
+export async function getEvents(inboxId: string, page = 1, limit = 25): Promise<EventsResponse> {
 	const params = new URLSearchParams({ page: String(page), limit: String(limit) });
 	const res = await fetch(`${API}/events/${inboxId}?${params}`);
 	if (!res.ok) throw new Error(await res.text());
@@ -77,10 +65,7 @@ export async function searchEvents(
 	return res.json();
 }
 
-export async function getEvent(
-	inboxId: string,
-	eventId: number,
-): Promise<WebhookEvent> {
+export async function getEvent(inboxId: string, eventId: number): Promise<WebhookEvent> {
 	const res = await fetch(`${API}/events/${inboxId}/${eventId}`);
 	if (!res.ok) throw new Error(await res.text());
 	return res.json();

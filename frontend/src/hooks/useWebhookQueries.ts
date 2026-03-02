@@ -2,17 +2,12 @@
  * TanStack Query hooks for WebhookLab API calls.
  * Handles caching, background refetching, and invalidation.
  */
-import {
-	keepPreviousData,
-	useMutation,
-	useQuery,
-	useQueryClient,
-} from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	clearEvents,
 	getEvent,
-	getEvents,
 	getEventStats,
+	getEvents,
 	getWebhookByIdOrSlug,
 	searchEvents,
 } from "../api";
@@ -27,8 +22,7 @@ export const webhookKeys = {
 export const eventKeys = {
 	all: (inboxId: string) => ["events", inboxId] as const,
 	stats: (inboxId: string) => [...eventKeys.all(inboxId), "stats"] as const,
-	detail: (inboxId: string, eventId: number) =>
-		[...eventKeys.all(inboxId), eventId] as const,
+	detail: (inboxId: string, eventId: number) => [...eventKeys.all(inboxId), eventId] as const,
 	search: (inboxId: string, params: SearchEventsParams) =>
 		[
 			"events",
@@ -48,7 +42,7 @@ export const eventKeys = {
 export function useWebhookQuery(webhookId: string | undefined) {
 	return useQuery({
 		queryKey: webhookKeys.detail(webhookId ?? ""),
-		queryFn: () => getWebhookByIdOrSlug(webhookId!),
+		queryFn: () => getWebhookByIdOrSlug(webhookId as string),
 		enabled: !!webhookId,
 	});
 }
@@ -57,7 +51,7 @@ export function useWebhookQuery(webhookId: string | undefined) {
 export function useEventsQuery(inboxId: string | undefined, page = 1, limit = 50) {
 	return useQuery({
 		queryKey: [...eventKeys.all(inboxId ?? ""), page, limit],
-		queryFn: () => getEvents(inboxId!, page, limit),
+		queryFn: () => getEvents(inboxId as string, page, limit),
 		enabled: !!inboxId,
 		placeholderData: keepPreviousData,
 	});
@@ -71,7 +65,7 @@ export function useSearchEventsQuery(
 ) {
 	return useQuery({
 		queryKey: eventKeys.search(inboxId ?? "", params),
-		queryFn: () => searchEvents(inboxId!, params),
+		queryFn: () => searchEvents(inboxId as string, params),
 		enabled: !!inboxId && enabled,
 		placeholderData: keepPreviousData,
 	});
@@ -81,19 +75,16 @@ export function useSearchEventsQuery(
 export function useEventStatsQuery(inboxId: string | undefined) {
 	return useQuery({
 		queryKey: eventKeys.stats(inboxId ?? ""),
-		queryFn: () => getEventStats(inboxId!),
+		queryFn: () => getEventStats(inboxId as string),
 		enabled: !!inboxId,
 	});
 }
 
 /** Fetch single event (for detail pane when not in list) */
-export function useEventQuery(
-	inboxId: string | undefined,
-	eventId: number | undefined,
-) {
+export function useEventQuery(inboxId: string | undefined, eventId: number | undefined) {
 	return useQuery({
 		queryKey: eventKeys.detail(inboxId ?? "", eventId ?? 0),
-		queryFn: () => getEvent(inboxId!, eventId!),
+		queryFn: () => getEvent(inboxId as string, eventId as number),
 		enabled: !!inboxId && !!eventId,
 	});
 }
@@ -102,7 +93,7 @@ export function useEventQuery(
 export function useClearEventsMutation(inboxId: string | undefined) {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: () => clearEvents(inboxId!),
+		mutationFn: () => clearEvents(inboxId as string),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: eventKeys.all(inboxId ?? "") });
 			queryClient.invalidateQueries({ queryKey: eventKeys.stats(inboxId ?? "") });

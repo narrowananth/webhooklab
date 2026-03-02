@@ -28,8 +28,7 @@ export function useNetworkStatus() {
 		window.addEventListener("online", handleOnline);
 		window.addEventListener("offline", handleOffline);
 
-		const conn = (navigator as Navigator & { connection?: NetworkInformation })
-			.connection;
+		const conn = (navigator as Navigator & { connection?: NetworkInformation }).connection;
 		if (conn) {
 			setEffectiveType(conn.effectiveType);
 			setDownlink(conn.downlink);

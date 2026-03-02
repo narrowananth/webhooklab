@@ -7,6 +7,7 @@ import { useState } from "react";
 import { METHOD_COLORS } from "../../constants";
 import { useInspectStore } from "../../store/useInspectStore";
 import { getPathFromUrl } from "../../utils/truncateUrl";
+import { getBodyFormat } from "../../utils/getBodyFormat";
 import { formatRelativeTime } from "../../utils/relativeTime";
 import { highlightSearch } from "../../utils/highlightSearch";
 import { toAxios, toCurl, toJava, toNodeFetch } from "../../utils/requestToCode";
@@ -57,14 +58,15 @@ export function InspectDetailPane() {
 
 	const handleDownload = () => {
 		const text =
-			event.rawBody ?? (event.body ? JSON.stringify(event.body, null, 2) : "{}");
-		const blob = new Blob([text], { type: "application/json" });
+			event.rawBody ?? (event.body ? JSON.stringify(event.body, null, 2) : "");
+		const format = getBodyFormat(event);
+		const blob = new Blob([text], { type: format.mimeType });
 		const a = document.createElement("a");
 		a.href = URL.createObjectURL(blob);
 		a.download =
 			event.rawBody || event.body
-				? `webhook-${event.id}.json`
-				: `webhook-${event.id}-empty.json`;
+				? `webhook-${event.id}.${format.extension}`
+				: `webhook-${event.id}-empty.${format.extension}`;
 		a.click();
 		URL.revokeObjectURL(a.href);
 	};
@@ -529,7 +531,7 @@ export function InspectDetailPane() {
 						</span>
 						<Text as="span">Size: {formatSize(requestSizeBytes)}</Text>
 					</Flex>
-					<Text as="span">Format: JSON</Text>
+					<Text as="span">Format: {getBodyFormat(event).label}</Text>
 					<Text as="span">Received: {receivedAgo}</Text>
 				</Flex>
 			</Flex>

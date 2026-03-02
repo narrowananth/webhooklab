@@ -5,8 +5,8 @@
  * Uses deferred close to avoid "closed before connection" in React Strict Mode.
  */
 import { useEffect, useRef, useState } from "react";
-import type { WebhookEvent } from "../types";
 import { useInspectStore } from "../store/useInspectStore";
+import type { WebhookEvent } from "../types";
 
 function getWsUrl(webhookId: string): string {
 	const base = window.location.origin.replace(/^http/, "ws");

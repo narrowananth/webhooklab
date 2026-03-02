@@ -1,7 +1,9 @@
 /**
  * Generate code snippets from WebhookEvent for cURL, Node fetch, Axios, Java.
+ * Supports JSON, GraphQL, XML, SOAP, form-urlencoded, etc.
  */
 import type { WebhookEvent } from "../types";
+import { getBodyFormat } from "./getBodyFormat";
 
 function getBodyString(event: WebhookEvent): string {
 	return event.rawBody ?? (event.body ? JSON.stringify(event.body) : "");
@@ -9,6 +11,14 @@ function getBodyString(event: WebhookEvent): string {
 
 function getHeaders(event: WebhookEvent): Record<string, string> {
 	return event.headers ?? {};
+}
+
+function getContentType(event: WebhookEvent): string {
+	const headers = event.headers ?? {};
+	const key = Object.keys(headers).find((k) => k.toLowerCase() === "content-type");
+	if (key && headers[key]) return headers[key].split(";")[0].trim();
+	const format = getBodyFormat(event);
+	return format.mimeType;
 }
 
 function buildUrl(event: WebhookEvent): string {
@@ -61,7 +71,10 @@ export function toAxios(event: WebhookEvent): string {
 	if (["get", "delete"].includes(method)) {
 		return `axios.${method}('${url}', {\n  headers: ${JSON.stringify(headers, null, 2)}\n});`;
 	}
-	const bodyArg = body ? `JSON.parse(\`${body.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$/g, "\\$")}\`)` : "{}";
+	// Use raw body string so XML, SOAP, form-urlencoded, GraphQL all work
+	const bodyArg = body
+		? `\`${body.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$/g, "\\$")}\``
+		: "{}";
 	return `axios.${method}('${url}', ${bodyArg}, {\n  headers: ${JSON.stringify(headers, null, 2)}\n});`;
 }
 
@@ -86,11 +99,12 @@ export function toJava(event: WebhookEvent): string {
 	};
 	const okMethod = methodMap[method] ?? "get";
 	if (hasBody && ["post", "put", "patch"].includes(okMethod)) {
-		const bodyJson = JSON.stringify(body);
+		const contentType = getContentType(event);
+		const escaped = body.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t");
 		return `OkHttpClient client = new OkHttpClient();
-MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
-RequestBody body = RequestBody.create(mediaType, ${bodyJson});
-${builder}Request request = builder.${okMethod}(body).build();
+MediaType mediaType = MediaType.parse("${contentType}; charset=utf-8");
+RequestBody requestBody = RequestBody.create(mediaType, "${escaped}");
+${builder}Request request = builder.${okMethod}(requestBody).build();
 Response response = client.newCall(request).execute();`;
 	}
 	return `OkHttpClient client = new OkHttpClient();

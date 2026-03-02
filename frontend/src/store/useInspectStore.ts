@@ -72,8 +72,7 @@ export const useInspectStore = create<InspectState>()(
 		(set) => ({
 			theme: "light",
 			setTheme: (theme) => set({ theme }),
-			toggleTheme: () =>
-				set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
+			toggleTheme: () => set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
 
 			selectedEvent: null,
 			setSelectedEvent: (selectedEvent) => set({ selectedEvent }),
