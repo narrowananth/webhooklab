@@ -4,5 +4,7 @@ plugins {
 
 dependencies {
     api(libs.spring.boot.starter.data.jpa)
-    implementation(libs.postgresql)
+    api(libs.spring.boot.starter.jdbc)
+    api(libs.hibernate.envers)
+    api(libs.postgresql)
 }

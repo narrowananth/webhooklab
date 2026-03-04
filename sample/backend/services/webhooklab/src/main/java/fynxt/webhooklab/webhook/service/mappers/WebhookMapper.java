@@ -1,12 +1,15 @@
 package fynxt.webhooklab.webhook.service.mappers;
 
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import fynxt.mapper.config.MapperCoreConfig;
 import fynxt.webhooklab.webhook.dto.WebhookDto;
 import fynxt.webhooklab.webhook.entity.Webhook;
 
-@Mapper(componentModel = "spring")
+@Mapper(config = MapperCoreConfig.class)
 public interface WebhookMapper {
 
 	@Mapping(target = "pkId", source = "id")
@@ -14,6 +17,7 @@ public interface WebhookMapper {
 	@Mapping(target = "url", ignore = true)
 	WebhookDto toDto(Webhook entity);
 
+	@BeanMapping(builder = @Builder(disableBuilder = true))
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "webhookId", expression = "java(java.util.UUID.randomUUID())")
 	@Mapping(target = "createdAt", ignore = true)

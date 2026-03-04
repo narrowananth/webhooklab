@@ -1,8 +1,9 @@
 package fynxt.webhooklab.webhookrequest.dto;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.AllArgsConstructor;
@@ -17,7 +18,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class WebhookRequestDto extends AuditingEntity {
+public class WebhookRequestDto {
 
 	private Long id;
 	private String method;

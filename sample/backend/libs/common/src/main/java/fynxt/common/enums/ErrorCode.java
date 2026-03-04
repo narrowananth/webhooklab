@@ -12,8 +12,8 @@ public enum ErrorCode {
 	DUPLICATE_RESOURCE("1007", "Resource already exists"),
 	INVALID_CREDENTIALS("1008", "Invalid credentials"),
 	UNEXPECTED_ERROR("1009", "An unexpected error occurred. Please try again later."),
-	MISSING_REQUIRED_PARAMETER("1010", "Missing required parameter"),
-	
+	MISSING_REQUIRED_PARAMETER("1010", "Missing required parameter");
+
 	private final String code;
 	private final String message;
 
