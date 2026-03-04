@@ -1,0 +1,12 @@
+{
+	"permissions": {
+		"allow": [
+			"Bash(ls:*)",
+			"Bash(mkdir:*)",
+			"Bash(./gradlew:*)",
+			"Bash(spotless:*)",
+			"Edit(**)",
+			"Write(**)"
+		]
+	}
+}

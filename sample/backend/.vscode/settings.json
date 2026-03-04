@@ -1,0 +1,7 @@
+{
+	"gradle.nestedProjects": true,
+	"java.compile.nullAnalysis.mode": "disabled",
+	"java.configuration.updateBuildConfiguration": "automatic",
+	"java.format.enabled": false,
+	"java.gradle.buildServer.enabled": "off"
+}
