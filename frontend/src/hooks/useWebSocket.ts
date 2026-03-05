@@ -5,6 +5,7 @@
  * Uses deferred close to avoid "closed before connection" in React Strict Mode.
  */
 import { useEffect, useRef, useState } from "react";
+import { normalizeEvent } from "../api";
 import { useInspectStore } from "../store/useInspectStore";
 import type { WebhookEvent } from "../types";
 
@@ -48,9 +49,10 @@ export function useWebSocket(webhookId: string | null) {
 			try {
 				const data = JSON.parse(e.data);
 				if (data.type === "event:new" && data.event) {
-					setEvents((prev) => [data.event, ...prev]);
+					const event = normalizeEvent(data.event as WebhookEvent);
+					setEvents((prev) => [event, ...prev]);
 					if (autoSelectNew) {
-						setSelectedEvent(data.event);
+						setSelectedEvent(event);
 					}
 				}
 			} catch {

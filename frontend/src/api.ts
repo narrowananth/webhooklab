@@ -93,10 +93,18 @@ export async function getWebhookBySlug(slug: string): Promise<WebhookInbox> {
 	return request<WebhookInbox>(`${API}/webhooks/by-slug/${encodeURIComponent(slug)}`);
 }
 
+/** Normalize event so UI always has timestamp when backend sent a date. Exported for use in WebSocket handler. */
+export function normalizeEvent(e: WebhookEvent): WebhookEvent {
+	const ts = e.timestamp ?? e.createdAt ?? (e as { created_at?: string }).created_at;
+	if (ts) return { ...e, timestamp: ts };
+	return e;
+}
+
 function toEventsResponse(payload: PaginatedData<WebhookEvent>): EventsResponse {
 	const p = payload.pagination;
+	const content = (payload.content ?? []).map(normalizeEvent);
 	return {
-		events: payload.content ?? [],
+		events: content,
 		nextPageToken: null,
 		total: p?.totalElements ?? 0,
 		pagination: p
@@ -137,7 +145,8 @@ export async function searchEvents(
 }
 
 export async function getEvent(inboxId: string, eventId: number): Promise<WebhookEvent> {
-	return request<WebhookEvent>(`${API}/events/${inboxId}/${eventId}`);
+	const event = await request<WebhookEvent>(`${API}/events/${inboxId}/${eventId}`);
+	return normalizeEvent(event);
 }
 
 export async function getEventStats(

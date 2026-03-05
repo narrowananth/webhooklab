@@ -6,7 +6,7 @@ import { Badge, Box, Flex, Text } from "@chakra-ui/react";
 import type { WebhookEvent } from "../../types";
 import { useInspectStore } from "../../store/useInspectStore";
 import { METHOD_BADGE_STYLES, BADGE_STYLE_GRAY } from "../../constants";
-import { formatRelativeTime } from "../../utils/relativeTime";
+import { formatRelativeTime, getEventTimestamp } from "../../utils/relativeTime";
 import { getPathFromUrl, truncatePath } from "../../utils/truncateUrl";
 
 interface RecentActivityListProps {
@@ -85,7 +85,7 @@ export function RecentActivityList({ events, onSelectEvent }: RecentActivityList
 										color="var(--wl-text-subtle)"
 										flexShrink={0}
 									>
-										{formatRelativeTime(event.timestamp)}
+										{formatRelativeTime(getEventTimestamp(event))}
 									</Text>
 								</Flex>
 							</Box>

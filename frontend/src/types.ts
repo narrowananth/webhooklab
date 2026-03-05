@@ -16,7 +16,8 @@ export interface WebhookEvent {
 	rawBody: string | null;
 	ip: string | null;
 	status?: number;
-	timestamp: string;
+	timestamp?: string;
+	createdAt?: string;
 }
 
 export interface EventsResponse {

@@ -8,6 +8,7 @@ import type { WebhookEvent } from "../../types";
 import { METHOD_BADGE_STYLES, BADGE_STYLE_GRAY } from "../../constants";
 import { useInspectStore } from "../../store/useInspectStore";
 import { formatSize, getRequestSizeBytes } from "../../utils/requestSize";
+import { getEventTimestamp } from "../../utils/relativeTime";
 
 const METHODS = ["All", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"];
 const STATUS_OPTIONS = ["All", "2xx", "4xx", "5xx"];
@@ -498,14 +499,17 @@ export function RequestListPanel({
 				) : (
 					filteredEvents.map((event) => {
 						const isSelected = selectedEvent?.id === event.id;
-						const dateTime = new Date(event.timestamp).toLocaleString(undefined, {
-							year: "numeric",
-							month: "short",
-							day: "numeric",
-							hour: "2-digit",
-							minute: "2-digit",
-							second: "2-digit",
-						});
+						const ts = getEventTimestamp(event);
+						const dateTime = ts
+							? new Date(ts).toLocaleString(undefined, {
+									year: "numeric",
+									month: "short",
+									day: "numeric",
+									hour: "2-digit",
+									minute: "2-digit",
+									second: "2-digit",
+								})
+							: "—";
 						const badgeStyle = METHOD_BADGE_STYLES[event.method] ?? BADGE_STYLE_GRAY;
 
 						return (

@@ -9,6 +9,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { replayEvent } from "../api";
+import { getEventTimestamp } from "../utils/relativeTime";
 import type { WebhookEvent } from "../types";
 
 interface EventDetailModalProps {
@@ -104,7 +105,7 @@ export function EventDetailModal({
 							{event.method}
 						</Badge>
 						<Heading size="lg">
-							Event #{event.id} • {new Date(event.timestamp).toLocaleString()}
+							Event #{event.id} • {getEventTimestamp(event) ? new Date(getEventTimestamp(event)!).toLocaleString() : "—"}
 						</Heading>
 					</Flex>
 					<Button variant="ghost" size="sm" onClick={onClose}>

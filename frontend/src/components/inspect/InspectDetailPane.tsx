@@ -8,7 +8,7 @@ import { METHOD_COLORS } from "../../constants";
 import { useInspectStore } from "../../store/useInspectStore";
 import { getPathFromUrl } from "../../utils/truncateUrl";
 import { getBodyFormat } from "../../utils/getBodyFormat";
-import { formatRelativeTime } from "../../utils/relativeTime";
+import { formatRelativeTime, getEventTimestamp } from "../../utils/relativeTime";
 import { highlightSearch } from "../../utils/highlightSearch";
 import { toAxios, toCurl, toJava, toNodeFetch } from "../../utils/requestToCode";
 import { JsonViewer } from "./JsonViewer";
@@ -54,7 +54,7 @@ export function InspectDetailPane() {
 	const requestSizeBytes = getRequestSizeBytes(event);
 	const headerCount = Object.keys(event.headers ?? {}).length;
 	const path = getPathFromUrl(event.url);
-	const receivedAgo = formatRelativeTime(event.timestamp);
+	const receivedAgo = formatRelativeTime(getEventTimestamp(event));
 
 	const handleDownload = () => {
 		const text =
@@ -259,7 +259,7 @@ export function InspectDetailPane() {
 				</Flex>
 			</Flex>
 
-			{/* Meta bar: #ID, IP, Time, Size, Content-Type */}
+			{/* Meta bar: #ID, IP, Time, Size, Content-Type — each value has data-meta for debugging */}
 			<Flex
 				px="var(--wl-fluid-px)"
 				py={1.5}
@@ -275,25 +275,43 @@ export function InspectDetailPane() {
 				<Text as="span" fontFamily="var(--wl-font-mono)" fontWeight={600}>
 					#{event.id}
 				</Text>
-				<Flex align="center" gap={1}>
+				<Flex align="center" gap={1} title="Client IP">
 					<span className="material-symbols-outlined" style={{ fontSize: 14, color: "var(--wl-text-subtle)" }}>
 						public
 					</span>
-					{event.ip ?? "—"}
+					<Text as="span" data-meta="ip">
+						{event.ip ?? "—"}
+					</Text>
 				</Flex>
-				<Flex align="center" gap={1}>
+				<Flex align="center" gap={1} title="Received time">
 					<span className="material-symbols-outlined" style={{ fontSize: 14, color: "var(--wl-text-subtle)" }}>
 						schedule
 					</span>
-					{formatRelativeTime(event.timestamp)}
+					<Text
+						as="span"
+						data-meta="time"
+						title={getEventTimestamp(event) ? undefined : "Received time (no date from server)"}
+					>
+						{formatRelativeTime(getEventTimestamp(event))}
+					</Text>
 				</Flex>
-				<Flex align="center" gap={1}>
+				<Flex align="center" gap={1} title="Request size">
 					<span className="material-symbols-outlined" style={{ fontSize: 14, color: "var(--wl-text-subtle)" }}>
 						data_object
 					</span>
-					{formatSize(requestSizeBytes)}
+					<Text as="span" data-meta="size">
+						{formatSize(requestSizeBytes)}
+					</Text>
 				</Flex>
-				<Text as="span" fontFamily="var(--wl-font-mono)" fontSize="var(--wl-fluid-font-xs)" truncate maxW="min(200px, 40vw)">
+				<Text
+					as="span"
+					data-meta="content-type"
+					fontFamily="var(--wl-font-mono)"
+					fontSize="var(--wl-fluid-font-xs)"
+					truncate
+					maxW="min(200px, 40vw)"
+					title="Content-Type header"
+				>
 					{Object.entries(event.headers ?? {}).find(
 						([k]) => k.toLowerCase() === "content-type",
 					)?.[1] ?? "—"}
