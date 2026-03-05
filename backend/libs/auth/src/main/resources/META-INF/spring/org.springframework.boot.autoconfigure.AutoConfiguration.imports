@@ -1,0 +1,2 @@
+webhooklab.auth.config.AuthAutoConfiguration
+webhooklab.auth.config.SecurityConfig

@@ -5,7 +5,8 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
 	const backendUrl = env.VITE_BACKEND_URL ?? "http://localhost:4000";
-	const wsUrl = backendUrl.replace(/^http/, "ws");
+	const backendOrigin = backendUrl ? new URL(backendUrl).origin : backendUrl;
+	const wsUrl = backendOrigin.replace(/^http/, "ws");
 
 	return {
 		plugins: [react(), tsconfigPaths()],
@@ -24,12 +25,13 @@ export default defineConfig(({ mode }) => {
 		server: {
 			port: env.VITE_PORT ? Number(env.VITE_PORT) : undefined,
 			proxy: {
-				"/api": { target: backendUrl, changeOrigin: true },
+				"/health": { target: backendOrigin, changeOrigin: true },
+				"/webhooks": { target: backendOrigin, changeOrigin: true },
+				"/events": { target: backendOrigin, changeOrigin: true },
 				"/ws": { target: wsUrl, ws: true },
 				"/webhook": {
-					target: backendUrl,
+					target: backendOrigin,
 					changeOrigin: true,
-					// Always proxy to backend. /inspect/:id is for browser preview.
 				},
 			},
 		},

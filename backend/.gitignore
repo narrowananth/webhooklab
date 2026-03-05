@@ -1,30 +1,45 @@
-# Dependencies
-node_modules/
+# Ignore Gradle project-specific cache directory
+.gradle
+.kotlin
 
-# Build
-dist/
-build/
+# Ignore Gradle build output directory
+build
 
-# Environment
-.env
-.env.local
-.env.*.local
+# Ignore compiled class files
+**/bin/**
+*.class
 
-# Logs
-*.log
-npm-debug.log*
-pnpm-debug.log*
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Lock files (keep pnpm-lock.yaml at root, ignore package-lock.json if any)
-package-lock.json
-yarn.lock
+# Environment files
+.env
+.env.local
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Code quality reports
+**/reports/spotbugs/
+**/reports/checkstyle/
+**/reports/pmd/
+
+# Spotless backup files
+.spotless/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/

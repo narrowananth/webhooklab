@@ -1,0 +1,21 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+	  {
+		"type": "java",
+		"name": "Attach",
+		"request": "attach",
+		"hostName": "localhost",
+		"port": 5005
+	  },
+	  {
+		"type": "java",
+		"name": "Webhooklab Application",
+		"request": "launch",
+		"mainClass": "webhooklab.WebhooklabApplication",
+		"projectName": "webhooklab",
+		"cwd": "${workspaceFolder}/backend",
+		"vmArgs": "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+	  }
+	]
+  }  

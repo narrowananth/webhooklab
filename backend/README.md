@@ -1,36 +1,60 @@
-# WebhookLab Backend
+# Backend
 
-TypeScript + Express + Zod + PostgreSQL + WebSocket API.
+Multi-module backend built with Gradle and Java.
 
-## Requirements
+## Prerequisites
 
-- Node.js 24.14.0 (see [.nvmrc](../.nvmrc) — use `nvm use` if using nvm)
-- PostgreSQL
-- pnpm
+- **JDK 17+** (or version in `.sdkmanrc` if using SDKMAN)
+- **Gradle** — use the wrapper: `./gradlew`
 
-## Setup
+## Build
 
 ```bash
-# From project root
-pnpm install
-cp .env.example .env   # Edit with your PostgreSQL credentials
+./gradlew build
+./gradlew clean
+./gradlew clean build
 ```
 
-## Scripts
+## Test
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start with hot reload |
-| `pnpm build` | Compile TypeScript |
-| `pnpm start` | Run compiled output |
-| `pnpm db:generate` | Generate Drizzle migrations |
-| `pnpm db:migrate` | Apply migrations |
-| `pnpm db:push` | Push schema to DB (creates tables, use for fresh setup) |
-| `pnpm db:check` | List DB tables and migration status |
-| `pnpm db:studio` | Open Drizzle Studio |
-| `pnpm lint` | Biome check |
-| `pnpm lint:fix` | Biome fix |
+```bash
+./gradlew test
+./gradlew :<project-path>:test
+```
 
-## Environment
+## Run
 
-See `.env.example` for variables. Key ones: `PORT`, `DATABASE_URL` (or `POSTGRES_*`), `FRONTEND_URL`.
+```bash
+./gradlew :<project-path>:bootRun
+```
+
+Use the service module as `<project-path>` (e.g. `:services:brand`).
+
+## Migration
+
+Migrations use Flyway. Set `DATABASE_URL`, `DATABASE_USER`, and `DATABASE_PASSWORD` (e.g. via `.env` or environment) before running.
+
+```bash
+./gradlew :<project-path>:applyMigration
+./gradlew :<project-path>:generateMigration
+./gradlew :<project-path>:repairMigration
+```
+
+Use the module that contains migrations as `<project-path>` (e.g. `:services:brand`).
+
+If you see **"type does not exist"**, the DB was likely baselined without running earlier migrations. Use a clean schema or a fresh database and run `applyMigration` again.
+
+## Code quality
+
+```bash
+./gradlew spotlessCheck
+./gradlew spotlessApply
+```
+
+## Project structure
+
+| Path        | Description              |
+|------------|--------------------------|
+| `libs/`    | Shared libraries         |
+| `services/`| Runnable applications   |
+| `buildSrc/`| Shared build logic       |
