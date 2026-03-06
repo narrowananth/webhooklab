@@ -1,5 +1,5 @@
 import { Badge, Box, Flex, Text } from "@chakra-ui/react";
-import { getEventTimestamp } from "../utils/relativeTime";
+import { getEventTimestamp, parseDate } from "../utils/relativeTime";
 import type { WebhookEvent } from "../types";
 
 interface EventListProps {
@@ -67,7 +67,7 @@ export function EventList({ events, onSelect, methodColors }: EventListProps) {
 							flex={1}
 						>
 							{getEventTimestamp(event)
-								? new Date(getEventTimestamp(event)!).toLocaleString()
+								? (parseDate(getEventTimestamp(event))?.toLocaleString() ?? "—")
 								: "—"}
 						</Text>
 						{event.ip && (

@@ -9,7 +9,7 @@ import { Badge, Box, Button, Flex, Input, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import type { WebhookEvent } from "../../types";
 import { METHOD_COLORS } from "../../constants";
-import { getEventTimestamp } from "../../utils/relativeTime";
+import { getEventTimestamp, parseDate } from "../../utils/relativeTime";
 import { useInspectStore } from "../../store/useInspectStore";
 
 interface InspectSidebarProps {
@@ -155,11 +155,11 @@ export function InspectSidebar({ events, onSelectEvent }: InspectSidebarProps) {
 						const isSelected = selectedEvent?.id === event.id;
 						const ts = getEventTimestamp(event);
 						const time = ts
-							? new Date(ts).toLocaleTimeString(undefined, {
+							? (parseDate(ts)?.toLocaleTimeString(undefined, {
 									hour: "2-digit",
 									minute: "2-digit",
 									second: "2-digit",
-								})
+								}) ?? "—")
 							: "—";
 						const contentType =
 							event.headers?.["content-type"] ?? event.headers?.["Content-Type"] ?? "No content type";

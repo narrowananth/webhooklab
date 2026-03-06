@@ -119,7 +119,7 @@ function toEventsResponse(payload: PaginatedData<WebhookEvent>): EventsResponse 
 }
 
 export async function getEvents(inboxId: string, page = 1, limit = 25): Promise<EventsResponse> {
-	const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+	const params = new URLSearchParams({ page: String(page), size: String(limit) });
 	const payload = await request<PaginatedData<WebhookEvent>>(
 		`${API}/events/${inboxId}?${params}`,
 	);
@@ -137,7 +137,7 @@ export async function searchEvents(
 	if (opts.ip) params.set("ip", opts.ip);
 	if (opts.requestId != null) params.set("requestId", String(opts.requestId));
 	params.set("page", String(opts.page ?? 1));
-	params.set("limit", String(opts.limit ?? 25));
+	params.set("size", String(opts.limit ?? 25));
 	const payload = await request<PaginatedData<WebhookEvent>>(
 		`${API}/events/${inboxId}?${params}`,
 	);

@@ -1,6 +1,7 @@
 import { Box, Spinner } from "@chakra-ui/react";
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 function WebhookToInspectRedirect() {
 	const { webhookId } = useParams<{ webhookId: string }>();
@@ -35,7 +36,14 @@ function App() {
 					{/* Root: auto-create new webhook and redirect (handles refresh = new inbox) */}
 					<Route path="/" element={<AutoCreateWebhook />} />
 					{/* Inspect: load existing webhook data (bookmarkable URL) */}
-					<Route path="/inspect/:webhookId" element={<Inspect />} />
+					<Route
+						path="/inspect/:webhookId"
+						element={
+							<ErrorBoundary title="Inspect crashed">
+								<Inspect />
+							</ErrorBoundary>
+						}
+					/>
 					<Route path="/webhook/:webhookId" element={<WebhookToInspectRedirect />} />
 					<Route path="/w/:slug" element={<CustomUrl />} />
 					<Route path="/error" element={<ErrorPage />} />

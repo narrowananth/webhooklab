@@ -3,7 +3,9 @@ import type { ViteDevServer } from "vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-/** Suppress EPIPE/ECONNRESET on /ws client socket when browser closes (e.g. HMR). */
+/** Suppress EPIPE/ECONNRESET/ETIMEDOUT on /ws client socket when browser closes or connection drops (e.g. HMR, backend restart). */
+const WS_SOCKET_ERROR_CODES = new Set(["EPIPE", "ECONNRESET", "ETIMEDOUT"]);
+
 function suppressWsProxySocketErrors(): import("vite").Plugin {
 	return {
 		name: "suppress-ws-proxy-socket-errors",
@@ -11,7 +13,7 @@ function suppressWsProxySocketErrors(): import("vite").Plugin {
 			server.httpServer?.on("upgrade", (req, socket) => {
 				if (!req.url?.startsWith("/ws")) return;
 				socket.on("error", (err: NodeJS.ErrnoException) => {
-					if (err.code === "EPIPE" || err.code === "ECONNRESET") return;
+					if (err.code && WS_SOCKET_ERROR_CODES.has(err.code)) return;
 					console.error("[vite] ws client socket error:", err);
 				});
 			});
@@ -40,6 +42,7 @@ export default defineConfig(({ mode }) => {
 			chunkSizeWarningLimit: 600,
 		},
 		server: {
+			host: true,
 			port: env.VITE_PORT ? Number(env.VITE_PORT) : undefined,
 			proxy: {
 				"/health": { target: backendOrigin, changeOrigin: true },
@@ -50,8 +53,12 @@ export default defineConfig(({ mode }) => {
 					ws: true,
 					configure: (proxy) => {
 						proxy.on("error", (err: NodeJS.ErrnoException) => {
-							if (err.code === "EPIPE") return;
+							if (err.code && WS_SOCKET_ERROR_CODES.has(err.code)) return;
 							console.error("[vite] ws proxy error:", err);
+						});
+						// Swallow errors on the outgoing (backend) socket so they don't bubble and get logged
+						proxy.on("proxyReqWs", (proxyReq: { socket?: { on?: (e: string, fn: () => void) => void } }) => {
+							proxyReq?.socket?.on?.("error", () => {});
 						});
 					},
 				},

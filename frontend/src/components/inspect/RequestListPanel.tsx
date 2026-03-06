@@ -8,7 +8,7 @@ import type { WebhookEvent } from "../../types";
 import { METHOD_BADGE_STYLES, BADGE_STYLE_GRAY } from "../../constants";
 import { useInspectStore } from "../../store/useInspectStore";
 import { formatSize, getRequestSizeBytes } from "../../utils/requestSize";
-import { getEventTimestamp } from "../../utils/relativeTime";
+import { getEventTimestamp, parseDate } from "../../utils/relativeTime";
 
 const METHODS = ["All", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"];
 const STATUS_OPTIONS = ["All", "2xx", "4xx", "5xx"];
@@ -501,14 +501,14 @@ export function RequestListPanel({
 						const isSelected = selectedEvent?.id === event.id;
 						const ts = getEventTimestamp(event);
 						const dateTime = ts
-							? new Date(ts).toLocaleString(undefined, {
+							? (parseDate(ts)?.toLocaleString(undefined, {
 									year: "numeric",
 									month: "short",
 									day: "numeric",
 									hour: "2-digit",
 									minute: "2-digit",
 									second: "2-digit",
-								})
+								}) ?? "—")
 							: "—";
 						const badgeStyle = METHOD_BADGE_STYLES[event.method] ?? BADGE_STYLE_GRAY;
 
@@ -588,13 +588,13 @@ export function RequestListPanel({
 					borderTopWidth="1px"
 					borderColor="var(--wl-border-subtle)"
 					align="center"
-					justify={filterMode && pagination ? "space-between" : "center"}
+					justify={pagination ? "space-between" : "center"}
 					gap={2}
 					flexShrink={0}
 					flexWrap="nowrap"
 					bg="var(--wl-bg-subtle)"
 				>
-					{filterMode && pagination ? (
+					{pagination ? (
 						<>
 							<Flex align="center" gap={2} flex={1} minW={0} flexWrap="nowrap">
 							<Button

@@ -1,7 +1,7 @@
 /**
  * RequestItem - Refined list item with left accent bar, hover/active states
  */
-import { getEventTimestamp } from "../../utils/relativeTime";
+import { getEventTimestamp, parseDate } from "../../utils/relativeTime";
 import type { WebhookEvent } from "../../types";
 import { METHOD_BADGE_STYLES, BADGE_STYLE_GRAY } from "../../constants";
 import { formatSize, getRequestSizeBytes } from "../../utils/requestSize";
@@ -17,14 +17,14 @@ export function RequestItem({ event, isSelected, onSelect, isNew }: RequestItemP
 	const badgeStyle = METHOD_BADGE_STYLES[event.method] ?? BADGE_STYLE_GRAY;
 	const ts = getEventTimestamp(event);
 	const dateTime = ts
-		? new Date(ts).toLocaleString(undefined, {
+		? (parseDate(ts)?.toLocaleString(undefined, {
 				year: "numeric",
 				month: "short",
 				day: "numeric",
 				hour: "2-digit",
 				minute: "2-digit",
 				second: "2-digit",
-			})
+			}) ?? "—")
 		: "—";
 
 	return (
