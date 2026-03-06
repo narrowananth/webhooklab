@@ -19,7 +19,7 @@ const URL_CHAR_PX = 7.8;
 const URL_PADDING_PX = 52; // copy button + horizontal padding
 
 export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: InspectHeaderProps) {
-	const { isPaused, togglePaused, theme, toggleTheme, autoSelectNew, toggleAutoSelectNew } =
+	const { isPaused, togglePaused, theme, toggleTheme, autoSelectNew, toggleAutoSelectNew, selectedEvent, sidebarOpen, setSidebarOpen } =
 		useInspectStore();
 	const [optionsOpen, setOptionsOpen] = useState(false);
 	const [urlCopied, setUrlCopied] = useState(false);
@@ -72,8 +72,29 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 			justifyContent="space-between"
 			gap="var(--wl-fluid-lg)"
 		>
-			{/* Logo - left section (matches sidebar width for alignment) */}
-			<Flex align="center" flexShrink={0} w={{ base: "auto", lg: "var(--wl-sidebar-width)" }} minW={{ base: 0, lg: "var(--wl-sidebar-min-width)" }} maxW={{ lg: "var(--wl-sidebar-max-width)" }} h={10}>
+			{/* Logo - left section (matches sidebar width for alignment). On mobile: sidebar toggle when viewing detail. */}
+			<Flex align="center" flexShrink={0} w={{ base: "auto", md: "var(--wl-sidebar-width)" }} minW={{ base: 0, md: "var(--wl-sidebar-min-width)" }} maxW={{ md: "var(--wl-sidebar-max-width)" }} h={10} gap={2}>
+				{/* Mobile only: arrow/menu to open or close request list sidebar */}
+				<Box
+					as="button"
+					display={{ base: selectedEvent ? "flex" : "none", md: "none" }}
+					alignItems="center"
+					justifyContent="center"
+					w={9}
+					h={9}
+					rounded="lg"
+					bg="var(--wl-bg)"
+					borderWidth="1px"
+					borderColor="var(--wl-border-subtle)"
+					color="var(--wl-text-subtle)"
+					_hover={{ bg: "var(--wl-bg-hover)", borderColor: "var(--wl-border)" }}
+					onClick={() => setSidebarOpen(!sidebarOpen)}
+					aria-label={sidebarOpen ? "Close request list" : "Open request list"}
+				>
+					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)" }}>
+						{sidebarOpen ? "chevron_left" : "menu"}
+					</span>
+				</Box>
 				<Link
 					to="/"
 					style={{
@@ -164,94 +185,126 @@ export function InspectHeader({ webhookUrl, connected, onCopy, onClear }: Inspec
 				</Flex>
 			</Flex>
 
-			{/* Right section: Connected → Pause → Clear → Theme toggle → Options (order fixed, no wrap) */}
-			<Flex align="center" gap="var(--wl-fluid-sm)" flexShrink={0} flexWrap="nowrap" minW={0} h={10}>
+			{/* Right section: scrollable actions + 3-dot Options always visible on the right */}
+			<Flex align="center" gap={1} flexShrink={0} minW={0} flex="0 1 auto">
 				<Flex
 					align="center"
-					justify="center"
-					gap={2}
-					px={3}
-					py={1.5}
-					rounded="full"
-					bg={connected ? "var(--wl-connected-bg)" : "var(--wl-disconnected-bg)"}
-					borderWidth="0"
+					gap={{ base: 1, sm: "var(--wl-fluid-sm)" }}
+					flex="0 1 auto"
+					minW={0}
+					minH={10}
+					py={1}
+					overflowX="auto"
+					overflowY="hidden"
+					flexWrap="nowrap"
+					css={{
+						scrollbarWidth: "none",
+						MsOverflowStyle: "none",
+						"&::-webkit-scrollbar": { display: "none" },
+					}}
 				>
-					<Box
-						w={2}
-						h={2}
+					<Flex
+						align="center"
+						justify="center"
+						gap={2}
+						px={{ base: 2, sm: 3 }}
+						py={1.5}
 						rounded="full"
-						bg={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
-						alignSelf="center"
-					/>
-					<Text
-						fontSize="12px"
-						fontWeight={600}
-						lineHeight="1"
-						color={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
-						textTransform="uppercase"
-						letterSpacing="0.05em"
-						alignSelf="center"
+						bg={connected ? "var(--wl-connected-bg)" : "var(--wl-disconnected-bg)"}
+						borderWidth="0"
+						flexShrink={0}
 					>
-						{connected ? "Connected" : "Disconnected"}
-					</Text>
+						<Box
+							w={2}
+							h={2}
+							rounded="full"
+							bg={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
+							alignSelf="center"
+						/>
+						<Text
+							fontSize="12px"
+							fontWeight={600}
+							lineHeight="1"
+							color={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
+							textTransform="uppercase"
+							letterSpacing="0.05em"
+							alignSelf="center"
+							display={{ base: "none", sm: "block" }}
+						>
+							{connected ? "Connected" : "Disconnected"}
+						</Text>
+						<Text
+							fontSize="11px"
+							fontWeight={600}
+							lineHeight="1"
+							color={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
+							alignSelf="center"
+							display={{ base: "block", sm: "none" }}
+						>
+							{connected ? "ON" : "OFF"}
+						</Text>
+					</Flex>
+					<Box
+						as="button"
+						w={9}
+						h={9}
+						p={2}
+						rounded="lg"
+						flexShrink={0}
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
+						bg={isPaused ? "var(--wl-bg-muted)" : "var(--wl-bg)"}
+						color={isPaused ? "var(--wl-text-subtle)" : "var(--wl-text)"}
+						onClick={togglePaused}
+						aria-label={isPaused ? "Resume" : "Pause"}
+						_hover={{ bg: "var(--wl-bg-hover)" }}
+					>
+						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "inherit" }}>
+							{isPaused ? "play_arrow" : "pause"}
+						</span>
+					</Box>
+					<Box
+						as="button"
+						w={9}
+						h={9}
+						p={2}
+						rounded="lg"
+						flexShrink={0}
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
+						_hover={{ bg: "var(--wl-bg-hover)" }}
+						color="var(--wl-text-subtle)"
+						onClick={onClear}
+						aria-label="Clear"
+					>
+						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "var(--wl-text-subtle)" }}>
+							delete_sweep
+						</span>
+					</Box>
+					<Box
+						as="button"
+						w={9}
+						h={9}
+						p={2}
+						rounded="lg"
+						flexShrink={0}
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
+						_hover={{ bg: "var(--wl-bg-hover)" }}
+						color="var(--wl-text-subtle)"
+						aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+						onClick={toggleTheme}
+					>
+						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "var(--wl-text-subtle)" }}>
+							{theme === "dark" ? "light_mode" : "dark_mode"}
+						</span>
+					</Box>
 				</Flex>
-				<Box
-					as="button"
-					w={9}
-					h={9}
-					p={2}
-					rounded="lg"
-					display="flex"
-					alignItems="center"
-					justifyContent="center"
-					bg={isPaused ? "var(--wl-bg-muted)" : "var(--wl-bg)"}
-					color={isPaused ? "var(--wl-text-subtle)" : "var(--wl-text)"}
-					onClick={togglePaused}
-					aria-label={isPaused ? "Resume" : "Pause"}
-					_hover={{ bg: "var(--wl-bg-hover)" }}
-				>
-					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "inherit" }}>
-						{isPaused ? "play_arrow" : "pause"}
-					</span>
-				</Box>
-				<Box
-					as="button"
-					w={9}
-					h={9}
-					p={2}
-					rounded="lg"
-					display="flex"
-					alignItems="center"
-					justifyContent="center"
-					_hover={{ bg: "var(--wl-bg-hover)" }}
-					color="var(--wl-text-subtle)"
-					onClick={onClear}
-					aria-label="Clear"
-				>
-					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "var(--wl-text-subtle)" }}>
-						delete_sweep
-					</span>
-				</Box>
-				<Box
-					as="button"
-					w={9}
-					h={9}
-					p={2}
-					rounded="lg"
-					display="flex"
-					alignItems="center"
-					justifyContent="center"
-					_hover={{ bg: "var(--wl-bg-hover)" }}
-					color="var(--wl-text-subtle)"
-					aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-					onClick={toggleTheme}
-				>
-					<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)", color: "var(--wl-text-subtle)" }}>
-						{theme === "dark" ? "light_mode" : "dark_mode"}
-					</span>
-				</Box>
-				{/* Options menu - last */}
-				<Box position="relative" ref={optionsRef}>
+				{/* 3-dot Options: outside scroll so it's always visible on every screen size */}
+				<Box position="relative" ref={optionsRef} flexShrink={0}>
 					<Box
 						as="button"
 						w={9}

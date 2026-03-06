@@ -22,6 +22,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useWebSocket } from "../hooks/useWebSocket";
 import { useInspectStore } from "../store/useInspectStore";
 import { toFullWebhookUrl } from "../utils/truncateUrl";
+import { copyToClipboard } from "../utils/clipboard";
 import { UUID_REGEX } from "../api";
 import type { WebhookEvent } from "../types";
 
@@ -50,6 +51,8 @@ export function Inspect() {
 		pageSize,
 		setPageSize,
 		isPaused,
+		autoSelectNew,
+		setSidebarOpen,
 	} = useInspectStore();
 	const queryClient = useQueryClient();
 	const [searchPage, setSearchPage] = useState(1);
@@ -72,7 +75,13 @@ export function Inspect() {
 		pageSize,
 	);
 	const clearMutation = useClearEventsMutation(resolvedId);
-	const { setEvents, connected } = useWebSocket(resolvedId ?? null);
+	const handleNewEvent = () => {
+		if (resolvedId) {
+			queryClient.invalidateQueries({ queryKey: eventKeys.stats(resolvedId) });
+			queryClient.invalidateQueries({ queryKey: eventKeys.all(resolvedId) });
+		}
+	};
+	const { events: wsEvents, setEvents, connected } = useWebSocket(resolvedId ?? null, handleNewEvent);
 	const { data: stats, isLoading: statsLoading } = useEventStatsQuery(
 		resolvedId,
 	);
@@ -94,8 +103,24 @@ export function Inspect() {
 	);
 
 	useEffect(() => {
-		// Keep first page in WS buffer when browsing full list (for potential live merge on page 1)
-		if (eventsData?.events && !hasFilters && listPage === 1) setEvents(eventsData.events);
+		// Merge REST first page into WS buffer when on page 1 (keep newest-first by id after merge)
+		if (eventsData?.events && !hasFilters && listPage === 1) {
+			const rest = eventsData.events;
+			const restIds = new Set(rest.map((r) => r.id));
+			setEvents((prev) => {
+				const wsOnly = prev.filter((p) => !restIds.has(p.id));
+				const merged = [...wsOnly, ...rest];
+				// Dedupe by id and sort descending by id so page 1 is always newest-first
+				const seen = new Set<number>();
+				return merged
+					.filter((e) => {
+						if (seen.has(e.id)) return false;
+						seen.add(e.id);
+						return true;
+					})
+					.sort((a, b) => b.id - a.id);
+			});
+		}
 	}, [eventsData?.events, hasFilters, listPage, setEvents]);
 
 	// When resuming from pause: refetch events from server to get logs stored while paused
@@ -119,27 +144,60 @@ export function Inspect() {
 		setListPage(1);
 	}, [pageSize]);
 
-	// No filters: server-side pagination over full dataset (eventsData). With filters: searchData.
-	const displayEvents = hasFilters
-		? (searchData?.events ?? [])
-		: (eventsData?.events ?? []);
+	// No filters: server-side pagination. On page 1 use merged WS + REST for real-time; other pages use REST only.
+	const displayEvents =
+		hasFilters
+			? (searchData?.events ?? [])
+			: listPage === 1
+				? wsEvents
+				: (eventsData?.events ?? []);
 
 	const handleSelectEvent = (event: WebhookEvent) => {
 		setSelectedEvent(event);
+		setSidebarOpen(false); // close mobile sidebar overlay when a request is selected
 		setSearchParams((prev) => {
 			prev.set("req", String(event.id));
 			return prev;
 		});
 	};
 
+	// When "Auto-select new requests" is ON: keep selection on the latest record (by id = newest).
+	// When OFF: only the user-clicked or URL-synced record is shown.
+	// Use ref + stable deps to avoid "Maximum update depth exceeded" from effect re-triggering.
+	const lastAutoSelectedIdRef = useRef<number | null>(null);
+	// Derive latest by max id so we're not dependent on list order (merge/refetch can reorder).
+	const latestId =
+		displayEvents.length > 0
+			? Math.max(...displayEvents.map((e) => e.id))
+			: null;
 	useEffect(() => {
+		if (!autoSelectNew || latestId == null) return;
+		const latest = displayEvents.find((e) => e.id === latestId);
+		if (!latest) return;
+		if (selectedEvent?.id === latestId) {
+			lastAutoSelectedIdRef.current = latestId;
+			return;
+		}
+		if (lastAutoSelectedIdRef.current === latestId) return;
+		lastAutoSelectedIdRef.current = latestId;
+		setSelectedEvent(latest);
+		setSearchParams((prev) => {
+			const next = new URLSearchParams(prev);
+			next.set("req", String(latestId));
+			return next;
+		});
+	}, [autoSelectNew, latestId, selectedEvent?.id, displayEvents, setSelectedEvent, setSearchParams]);
+
+	// Sync selection from URL (req param) only when Auto-select is OFF — when ON, latest record is the source of truth.
+	useEffect(() => {
+		if (autoSelectNew) return;
 		const reqId = searchParams.get("req");
 		if (!reqId) return;
 		if (selectedEvent && String(selectedEvent.id) === reqId) return;
 		if (displayEvents.length === 0) return;
 		const match = displayEvents.find((e) => String(e.id) === reqId);
 		if (match) setSelectedEvent(match);
-	}, [searchParams, displayEvents, selectedEvent, setSelectedEvent]);
+	}, [autoSelectNew, searchParams, displayEvents, selectedEvent, setSelectedEvent]);
 	const pagination =
 		hasFilters && searchData?.pagination
 			? {
@@ -166,11 +224,15 @@ export function Inspect() {
 				: undefined;
 
 	const fullWebhookUrl = toFullWebhookUrl(webhook?.url ?? "");
-	const handleCopy = async () => navigator.clipboard.writeText(fullWebhookUrl);
+	const handleCopy = async () => {
+		const urlToCopy = fullWebhookUrl || `${window.location.origin}/webhook/${webhookId ?? ""}`;
+		await copyToClipboard(urlToCopy);
+	};
 	const handleClear = async () => {
 		try {
 			await clearMutation.mutateAsync();
 			setSelectedEvent(null);
+			setSidebarOpen(false);
 			resetFilters();
 			setEvents([]);
 			setSearchPage(1);
@@ -253,6 +315,7 @@ export function Inspect() {
 				}
 				totalSizeBytes={stats?.totalSize ?? 0}
 				statsLoading={statsLoading}
+				wsConnected={connected && !isPaused}
 			/>
 		</Box>
 	);

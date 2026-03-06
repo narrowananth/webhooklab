@@ -1,6 +1,8 @@
 /**
  * Footer: WebSocket status, request count, total size, network signal,
  * session bandwidth, Docs link, product version.
+ * When wsConnected is true, footer shows Online so it matches the header
+ * (navigator.onLine can be false in Docker/VPN/dev while WebSocket still works).
  */
 import { Box, Flex, Text } from "@chakra-ui/react";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
@@ -20,6 +22,8 @@ interface InspectFooterProps {
 	requestCount: number;
 	totalSizeBytes: number;
 	statsLoading?: boolean;
+	/** When true (WebSocket connected), footer shows Online so it matches the header. */
+	wsConnected?: boolean;
 }
 
 export function InspectFooter({
@@ -27,10 +31,13 @@ export function InspectFooter({
 	requestCount,
 	totalSizeBytes,
 	statsLoading = false,
+	wsConnected = false,
 }: InspectFooterProps) {
 	const { online, effectiveType } = useNetworkStatus();
 
-	const networkLabel = online
+	// If WebSocket is connected, show online so footer matches header
+	const showOnline = wsConnected || online;
+	const networkLabel = showOnline
 		? effectiveType
 			? `${effectiveType.toUpperCase()}`
 			: "Online"
@@ -77,7 +84,7 @@ export function InspectFooter({
 							w={2}
 							h={2}
 							rounded="full"
-							bg={online ? "var(--wl-success)" : "var(--wl-error)"}
+							bg={showOnline ? "var(--wl-success)" : "var(--wl-error)"}
 							alignSelf="center"
 						/>
 						<Text lineHeight="1">{networkLabel}</Text>

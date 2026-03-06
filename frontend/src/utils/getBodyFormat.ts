@@ -48,11 +48,7 @@ function looksLikeXml(raw: string | null): boolean {
 function looksLikeSoap(raw: string | null): boolean {
 	if (!raw?.trim()) return false;
 	const lower = raw.toLowerCase();
-	return (
-		lower.includes("soap") ||
-		lower.includes("envelope") ||
-		/<\w*:?envelope/i.test(raw)
-	);
+	return lower.includes("soap") || lower.includes("envelope") || /<\w*:?envelope/i.test(raw);
 }
 
 /**
@@ -76,12 +72,7 @@ export function getBodyFormat(event: WebhookEvent): BodyFormatInfo {
 	}
 
 	// XML / SOAP
-	if (
-		ct.includes("xml") ||
-		ct.includes("soap") ||
-		looksLikeXml(raw) ||
-		looksLikeSoap(raw)
-	) {
+	if (ct.includes("xml") || ct.includes("soap") || looksLikeXml(raw) || looksLikeSoap(raw)) {
 		const isSoap = ct.includes("soap") || looksLikeSoap(raw);
 		return {
 			format: isSoap ? "soap" : "xml",

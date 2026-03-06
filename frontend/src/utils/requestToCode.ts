@@ -100,7 +100,12 @@ export function toJava(event: WebhookEvent): string {
 	const okMethod = methodMap[method] ?? "get";
 	if (hasBody && ["post", "put", "patch"].includes(okMethod)) {
 		const contentType = getContentType(event);
-		const escaped = body.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t");
+		const escaped = body
+			.replace(/\\/g, "\\\\")
+			.replace(/"/g, '\\"')
+			.replace(/\n/g, "\\n")
+			.replace(/\r/g, "\\r")
+			.replace(/\t/g, "\\t");
 		return `OkHttpClient client = new OkHttpClient();
 MediaType mediaType = MediaType.parse("${contentType}; charset=utf-8");
 RequestBody requestBody = RequestBody.create(mediaType, "${escaped}");

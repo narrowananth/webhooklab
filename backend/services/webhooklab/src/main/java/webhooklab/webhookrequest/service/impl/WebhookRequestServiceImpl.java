@@ -27,7 +27,9 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -78,7 +80,7 @@ public class WebhookRequestServiceImpl implements WebhookRequestService {
 
 	@Override
 	public Page<WebhookRequest> listByWebhookId(UUID webhookId, Pageable pageable) {
-		return requestRepository.findByWebhook_WebhookIdOrderByCreatedAtDesc(webhookId, pageable);
+		return requestRepository.findByWebhook_WebhookIdOrderByIdDesc(webhookId, pageable);
 	}
 
 	@Override
@@ -134,8 +136,10 @@ public class WebhookRequestServiceImpl implements WebhookRequestService {
 				&& requestId == null) {
 			eventPage = listByWebhookId(webhookId, pageable);
 		} else {
+			Pageable withSort = PageRequest.of(
+					pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "id"));
 			eventPage =
-					requestRepository.findAll(buildListSpec(webhookId, method, statusFilter, ip, requestId), pageable);
+					requestRepository.findAll(buildListSpec(webhookId, method, statusFilter, ip, requestId), withSort);
 		}
 
 		List<WebhookRequestDto> content =

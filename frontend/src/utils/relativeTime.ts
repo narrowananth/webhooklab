@@ -1,7 +1,9 @@
 /** Get display timestamp from event (backend may send timestamp, createdAt, or created_at). */
-export function getEventTimestamp(
-	event: { timestamp?: string | number; createdAt?: string | number; created_at?: string | number },
-): string | number | undefined {
+export function getEventTimestamp(event: {
+	timestamp?: string | number;
+	createdAt?: string | number;
+	created_at?: string | number;
+}): string | number | undefined {
 	return event.timestamp ?? event.createdAt ?? event.created_at;
 }
 

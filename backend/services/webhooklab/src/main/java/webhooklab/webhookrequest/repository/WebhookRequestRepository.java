@@ -18,7 +18,7 @@ import org.springframework.stereotype.Repository;
 public interface WebhookRequestRepository
 		extends JpaRepository<WebhookRequest, Long>, JpaSpecificationExecutor<WebhookRequest> {
 
-	Page<WebhookRequest> findByWebhook_WebhookIdOrderByCreatedAtDesc(UUID webhookId, Pageable pageable);
+	Page<WebhookRequest> findByWebhook_WebhookIdOrderByIdDesc(UUID webhookId, Pageable pageable);
 
 	Optional<WebhookRequest> findByWebhook_WebhookIdAndId(UUID webhookId, Long id);
 

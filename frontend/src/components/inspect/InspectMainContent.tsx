@@ -25,7 +25,7 @@ export function InspectMainContent({ events }: InspectMainContentProps) {
 			overflow="hidden"
 			bg="var(--wl-bg)"
 			// On mobile: take full width when viewing detail (list is hidden)
-			w={{ base: selectedEvent ? "full" : "full", lg: "auto" }}
+			w={{ base: "full", md: "auto" }}
 		>
 			{selectedEvent ? (
 				<InspectDetailPane />

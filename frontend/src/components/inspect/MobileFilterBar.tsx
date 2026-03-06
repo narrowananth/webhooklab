@@ -28,7 +28,7 @@ export function MobileFilterBar() {
 			bg="var(--wl-bg-subtle)"
 			borderBottomWidth="1px"
 			borderColor="var(--wl-border-subtle)"
-			display={{ base: "block", lg: "none" }}
+			display={{ base: "block", md: "none" }}
 		>
 			<Flex gap={2} flexWrap="wrap" mb={2}>
 				{METHODS.map((m) => {

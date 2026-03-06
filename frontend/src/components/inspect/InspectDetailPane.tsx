@@ -7,6 +7,7 @@ import { useState } from "react";
 import { METHOD_COLORS } from "../../constants";
 import { useInspectStore } from "../../store/useInspectStore";
 import { getPathFromUrl } from "../../utils/truncateUrl";
+import { copyToClipboard as copyToClipboardUtil } from "../../utils/clipboard";
 import { getBodyFormat } from "../../utils/getBodyFormat";
 import { formatRelativeTime, getEventTimestamp } from "../../utils/relativeTime";
 import { highlightSearch } from "../../utils/highlightSearch";
@@ -26,13 +27,11 @@ export function InspectDetailPane() {
 
 	const copyToClipboard = async (text: string, key: string) => {
 		try {
-			await navigator.clipboard.writeText(text);
+			await copyToClipboardUtil(text);
 			setLastCopiedKey(key);
 			setTimeout(() => setLastCopiedKey(null), 2000);
 		} catch {
-			window.navigator.clipboard?.writeText(text);
-			setLastCopiedKey(key);
-			setTimeout(() => setLastCopiedKey(null), 2000);
+			// User sees no success state; copy may still have failed in fallback
 		}
 	};
 
@@ -61,14 +60,17 @@ export function InspectDetailPane() {
 			event.rawBody ?? (event.body ? JSON.stringify(event.body, null, 2) : "");
 		const format = getBodyFormat(event);
 		const blob = new Blob([text], { type: format.mimeType });
+		const url = URL.createObjectURL(blob);
 		const a = document.createElement("a");
-		a.href = URL.createObjectURL(blob);
+		a.href = url;
 		a.download =
 			event.rawBody || event.body
 				? `webhook-${event.id}.${format.extension}`
 				: `webhook-${event.id}-empty.${format.extension}`;
+		document.body.appendChild(a);
 		a.click();
-		URL.revokeObjectURL(a.href);
+		document.body.removeChild(a);
+		setTimeout(() => URL.revokeObjectURL(url), 100);
 	};
 
 	const COPY_AS_OPTIONS: { id: string; label: string; fn: (e: WebhookEvent) => string }[] = [
@@ -81,15 +83,12 @@ export function InspectDetailPane() {
 	const handleCopyAs = async (opt: (typeof COPY_AS_OPTIONS)[0]) => {
 		const code = opt.fn(event);
 		try {
-			await navigator.clipboard.writeText(code);
+			await copyToClipboardUtil(code);
 			setCopyAsCopied(opt.id);
 			setTimeout(() => setCopyAsCopied(null), 2000);
 			setCopyAsOpen(false);
 		} catch {
-			window.navigator.clipboard?.writeText(code);
-			setCopyAsCopied(opt.id);
-			setTimeout(() => setCopyAsCopied(null), 2000);
-			setCopyAsOpen(false);
+			// Copy failed (e.g. in non-secure context without fallback)
 		}
 	};
 
@@ -97,14 +96,11 @@ export function InspectDetailPane() {
 		const url = new URL(window.location.href);
 		url.searchParams.set("req", String(event.id));
 		try {
-			await navigator.clipboard.writeText(url.toString());
+			await copyToClipboardUtil(url.toString());
 			setShareCopied(true);
 			setTimeout(() => setShareCopied(false), 2000);
 		} catch {
-			// fallback
-			window.navigator.clipboard?.writeText(url.toString());
-			setShareCopied(true);
-			setTimeout(() => setShareCopied(false), 2000);
+			// Copy failed
 		}
 	};
 
@@ -112,13 +108,11 @@ export function InspectDetailPane() {
 		const text = event.rawBody ?? (event.body ? JSON.stringify(event.body, null, 2) : "");
 		if (!text) return;
 		try {
-			await navigator.clipboard.writeText(text);
+			await copyToClipboardUtil(text);
 			setBodyCopied(true);
 			setTimeout(() => setBodyCopied(false), 2000);
 		} catch {
-			window.navigator.clipboard?.writeText(text);
-			setBodyCopied(true);
-			setTimeout(() => setBodyCopied(false), 2000);
+			// Copy failed
 		}
 	};
 
@@ -181,7 +175,7 @@ export function InspectDetailPane() {
 							fontWeight="normal"
 							color="var(--wl-text-subtle)"
 							_hover={{ color: "var(--wl-text)" }}
-							display={{ base: "none", lg: "flex" }}
+							display="flex"
 							alignItems="center"
 							justifyContent="center"
 							onClick={() => setCopyAsOpen(!copyAsOpen)}
@@ -236,7 +230,7 @@ export function InspectDetailPane() {
 						h={4}
 						bg="var(--wl-border-subtle)"
 						mx={1}
-						display={{ base: "none", md: "block" }}
+						display="block"
 					/>
 					<Box
 						as="button"
@@ -453,7 +447,7 @@ export function InspectDetailPane() {
 												p={1}
 												rounded="md"
 												_hover={{ bg: "var(--wl-bg-hover)" }}
-												onClick={() => copyToClipboard(v, `h-${k}`)}
+												onClick={() => copyToClipboard(String(v), `h-${k}`)}
 												aria-label={lastCopiedKey === `h-${k}` ? "Copied" : "Copy"}
 												flexShrink={0}
 											>
@@ -510,7 +504,7 @@ export function InspectDetailPane() {
 												p={1}
 												rounded="md"
 												_hover={{ bg: "var(--wl-bg-hover)" }}
-												onClick={() => copyToClipboard(v, `q-${k}`)}
+												onClick={() => copyToClipboard(String(v), `q-${k}`)}
 												aria-label={lastCopiedKey === `q-${k}` ? "Copied" : "Copy"}
 												flexShrink={0}
 											>

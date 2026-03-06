@@ -2,7 +2,8 @@
  * Left panel: search, Method/Status/IP/Request ID filters, scrollable request list.
  * When filterMode: server-side search, no client filtering. Otherwise: client-side filter.
  */
-import { Badge, Box, Button, Flex, Input, Spinner, Text } from "@chakra-ui/react";
+import { keyframes } from "@emotion/react";
+import { Badge, Box, Button, Flex, Input, Text } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import type { WebhookEvent } from "../../types";
 import { METHOD_BADGE_STYLES, BADGE_STYLE_GRAY } from "../../constants";
@@ -10,8 +11,63 @@ import { useInspectStore } from "../../store/useInspectStore";
 import { formatSize, getRequestSizeBytes } from "../../utils/requestSize";
 import { getEventTimestamp, parseDate } from "../../utils/relativeTime";
 
+const listOverlayFadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+const loadingBarShimmer = keyframes`
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+`;
+const dotBounce = keyframes`
+  0%, 60%, 100% { transform: scale(0.75); opacity: 0.6; }
+  30% { transform: scale(1.15); opacity: 1; }
+`;
+const iconSpin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
+
+/** Circle dot loader: 3 dots bouncing in sequence + sync (data/log) icon */
+function CircleDotLoader({ showIcon = true }: { showIcon?: boolean }) {
+	return (
+		<Flex align="center" gap={2}>
+			{showIcon && (
+				<Box color="var(--wl-accent)" css={{ animation: `${iconSpin} 1.2s linear infinite` }}>
+					<span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+						sync
+					</span>
+				</Box>
+			)}
+			<Flex align="center" gap={1} role="status" aria-label="Loading">
+				{[0, 1, 2].map((i) => (
+					<Box
+						key={i}
+						w="6px"
+						h="6px"
+						rounded="full"
+						bg="var(--wl-accent)"
+						css={{
+							animation: `${dotBounce} 0.6s ease-in-out infinite both`,
+							animationDelay: `${i * 0.12}s`,
+						}}
+					/>
+				))}
+			</Flex>
+		</Flex>
+	);
+}
+
 const METHODS = ["All", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"];
 const STATUS_OPTIONS = ["All", "2xx", "4xx", "5xx"];
+
+function getStatusLabel(status: number | undefined): string {
+	const s = status ?? 200;
+	if (s >= 200 && s < 300) return "OK";
+	if (s >= 400 && s < 500) return "Client error";
+	if (s >= 500) return "Server error";
+	return "OK";
+}
 
 const PAGE_SIZE_OPTIONS = [25, 50, 75, 100] as const;
 
@@ -56,6 +112,8 @@ export function RequestListPanel({
 		requestIdFilter,
 		setRequestIdFilter,
 		selectedEvent,
+		sidebarOpen,
+		setSidebarOpen,
 	} = useInspectStore();
 	const [methodDropdownOpen, setMethodDropdownOpen] = useState(false);
 	const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
@@ -63,36 +121,46 @@ export function RequestListPanel({
 	const [pageSizeDropdownOpen, setPageSizeDropdownOpen] = useState(false);
 
 	const filteredEvents = useMemo(() => {
-		if (filterMode) return events;
-		return events.filter((e) => {
-			if (searchFilter) {
-				const q = searchFilter.toLowerCase();
-				const bodyStr = e.rawBody ?? JSON.stringify(e.body ?? {});
-				const match =
-					e.method.toLowerCase().includes(q) ||
-					bodyStr.toLowerCase().includes(q) ||
-					JSON.stringify(e.headers ?? {}).toLowerCase().includes(q) ||
-					JSON.stringify(e.queryParams ?? {}).toLowerCase().includes(q) ||
-					(e.ip?.toLowerCase().includes(q) ?? false);
-				if (!match) return false;
-			}
-			if (methodFilter && methodFilter !== "All" && e.method !== methodFilter) return false;
-			if (ipFilter?.trim() && !e.ip?.toLowerCase().includes(ipFilter.trim().toLowerCase()))
-				return false;
-			if (
-				requestIdFilter?.trim() &&
-				String(e.id) !== requestIdFilter.trim()
-			)
-				return false;
-			if (statusFilter && statusFilter !== "All") {
-				const status = e.status ?? 200;
-				if (statusFilter === "2xx") return status >= 200 && status < 300;
-				if (statusFilter === "4xx") return status >= 400 && status < 500;
-				if (statusFilter === "5xx") return status >= 500 && status < 600;
-				return true;
-			}
+		// Dedupe by id so list keys are unique (safety net for WS/REST merge or duplicate messages)
+		const seen = new Set<number>();
+		const deduped = events.filter((e) => {
+			if (seen.has(e.id)) return false;
+			seen.add(e.id);
 			return true;
 		});
+		const filtered = filterMode
+			? deduped
+			: deduped.filter((e) => {
+					if (searchFilter) {
+						const q = searchFilter.toLowerCase();
+						const bodyStr = e.rawBody ?? JSON.stringify(e.body ?? {});
+						const match =
+							e.method.toLowerCase().includes(q) ||
+							bodyStr.toLowerCase().includes(q) ||
+							JSON.stringify(e.headers ?? {}).toLowerCase().includes(q) ||
+							JSON.stringify(e.queryParams ?? {}).toLowerCase().includes(q) ||
+							(e.ip?.toLowerCase().includes(q) ?? false);
+						if (!match) return false;
+					}
+					if (methodFilter && methodFilter !== "All" && e.method !== methodFilter) return false;
+					if (ipFilter?.trim() && !e.ip?.toLowerCase().includes(ipFilter.trim().toLowerCase()))
+						return false;
+					if (
+						requestIdFilter?.trim() &&
+						String(e.id) !== requestIdFilter.trim()
+					)
+						return false;
+					if (statusFilter && statusFilter !== "All") {
+						const status = e.status ?? 200;
+						if (statusFilter === "2xx") return status >= 200 && status < 300;
+						if (statusFilter === "4xx") return status >= 400 && status < 500;
+						if (statusFilter === "5xx") return status >= 500 && status < 600;
+						return true;
+					}
+					return true;
+				});
+		// Always show newest first (descending by request id)
+		return [...filtered].sort((a, b) => b.id - a.id);
 	}, [events, filterMode, searchFilter, methodFilter, statusFilter, ipFilter, requestIdFilter]);
 
 	const hasActiveFilters = !!(
@@ -106,23 +174,75 @@ export function RequestListPanel({
 	// "Filters active" label only when IP or Request ID are filled (content in the collapsible section)
 	const hasAdvancedFilters = !!(ipFilter?.trim() || requestIdFilter?.trim());
 
-	// On mobile/tablet: hide list when a request is selected (detail takes full width)
+	// On small screens only: hide list when a request is selected and sidebar is closed.
+	// When sidebarOpen is true, show list as overlay. From md (768px) up we always show the sidebar.
 	const isMobileWithSelection = !!selectedEvent;
+	const isOverlay = isMobileWithSelection && sidebarOpen;
 
 	return (
-		<Box
-			w={{ base: "full", lg: "var(--wl-sidebar-width)" }}
-			minW={{ base: 0, lg: "var(--wl-sidebar-min-width)" }}
-			maxW={{ lg: "var(--wl-sidebar-max-width)" }}
+		<>
+			{/* Backdrop when request list is open as overlay on mobile */}
+			{isOverlay && (
+				<Box
+					position="fixed"
+					inset={0}
+					zIndex={49}
+					bg="blackAlpha.600"
+					display={{ base: "block", md: "none" }}
+					onClick={() => setSidebarOpen(false)}
+					aria-hidden
+				/>
+			)}
+			<Box
+			w={{
+				base: isOverlay ? "min(320px, 85vw)" : "full",
+				md: "var(--wl-sidebar-width)",
+			}}
+			minW={{ base: 0, md: "var(--wl-sidebar-min-width)" }}
+			maxW={{ md: "var(--wl-sidebar-max-width)" }}
+			position={{ base: isOverlay ? "fixed" : "relative", md: "relative" }}
+			left={{ base: isOverlay ? 0 : undefined, md: undefined }}
+			top={{ base: isOverlay ? 0 : undefined, md: undefined }}
+			bottom={{ base: isOverlay ? 0 : undefined, md: undefined }}
+			zIndex={{ base: isOverlay ? 50 : undefined, md: undefined }}
 			flexShrink={0}
 			minH={0}
-			borderRightWidth={{ lg: "1px" }}
+			borderRightWidth={{ md: "1px" }}
 			borderColor="var(--wl-border)"
 			bg="var(--wl-surface)"
-			display={{ base: isMobileWithSelection ? "none" : "flex", lg: "flex" }}
+			display={{ base: (isMobileWithSelection && !sidebarOpen) ? "none" : "flex", md: "flex" }}
 			flexDir="column"
 			overflow="hidden"
 		>
+			{/* When overlay: show close button at top so user can close sidebar without tapping backdrop */}
+			{isOverlay && (
+				<Flex
+					align="center"
+					justify="flex-end"
+					p={2}
+					borderBottomWidth="1px"
+					borderColor="var(--wl-border-subtle)"
+					bg="var(--wl-bg-subtle)"
+				>
+					<Box
+						as="button"
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
+						w={9}
+						h={9}
+						rounded="lg"
+						color="var(--wl-text-subtle)"
+						_hover={{ bg: "var(--wl-bg-hover)", color: "var(--wl-text)" }}
+						onClick={() => setSidebarOpen(false)}
+						aria-label="Close request list"
+					>
+						<span className="material-symbols-outlined" style={{ fontSize: "var(--wl-icon-xl)" }}>
+							close
+						</span>
+					</Box>
+				</Flex>
+			)}
 			{/* Search + Filters */}
 			<Box p="var(--wl-fluid-px)" borderBottomWidth="1px" borderColor="var(--wl-border)" flexShrink={0}>
 				<Flex position="relative" mb={3}>
@@ -451,41 +571,45 @@ export function RequestListPanel({
 					},
 				}}
 			>
-				{/* Loading overlay - covers entire list area when refetching */}
+				{/* Refreshing: slim top bar + small pill — list stays visible */}
 				{isRefetching && (
-					<Flex
-						position="absolute"
-						inset={0}
+					<Box
+						position="sticky"
+						top={0}
 						zIndex={10}
-						align="center"
-						justify="center"
-						bg="var(--wl-surface)"
-						opacity={filteredEvents.length > 0 ? 0.9 : 1}
-						transition="opacity 0.15s"
+						mb={3}
+						css={{ animation: `${listOverlayFadeIn} 0.15s ease-out` }}
 					>
-						<Flex
-							flexDir="column"
-							align="center"
-							justify="center"
-							gap={3}
-							px={6}
-							py={8}
-							bg="var(--wl-bg-subtle)"
-							rounded="lg"
-							borderWidth="1px"
-							borderColor="var(--wl-border-subtle)"
-							shadow="md"
+						{/* Thin indeterminate loading bar */}
+						<Box
+							h="2px"
+							w="full"
+							bg="var(--wl-border-subtle)"
+							rounded="full"
+							overflow="hidden"
+							mb={2}
 						>
-							<Spinner size="lg" color="var(--wl-accent)" />
-							<Text fontSize="sm" fontWeight={500} color="var(--wl-text)">
-								{filteredEvents.length > 0 ? "Loading requests..." : "Searching..."}
+							<Box
+								h="full"
+								w="33%"
+								bg="var(--wl-accent)"
+								rounded="full"
+								css={{
+									animation: `${loadingBarShimmer} 1.2s ease-in-out infinite`,
+								}}
+							/>
+						</Box>
+						<Flex align="center" gap={2}>
+							<CircleDotLoader showIcon={true} />
+							<Text fontSize="xs" fontWeight={500} color="var(--wl-text-subtle)">
+								{filteredEvents.length > 0 ? "Refreshing…" : "Loading…"}
 							</Text>
 						</Flex>
-					</Flex>
+					</Box>
 				)}
 				{isSearching && filteredEvents.length === 0 ? (
 					<Box p="var(--wl-fluid-xl)" display="flex" flexDir="column" alignItems="center" justifyContent="center" gap={3}>
-						<Spinner size="md" color="var(--wl-accent)" />
+						<CircleDotLoader showIcon={true} />
 						<Text fontSize="var(--wl-fluid-font-sm)" color="var(--wl-text-subtle)">
 							Searching...
 						</Text>
@@ -549,7 +673,7 @@ export function RequestListPanel({
 											{event.method === "DELETE" ? "DEL" : event.method}
 										</Badge>
 										<Text fontSize="13px" fontWeight={500} lineHeight="1" color="var(--wl-text)">
-											200 OK
+											{event.status ?? 200} {getStatusLabel(event.status)}
 										</Text>
 									</Flex>
 									<Text fontSize="12px" color="var(--wl-text-subtle)" flexShrink={0}>
@@ -764,5 +888,6 @@ export function RequestListPanel({
 				</Flex>
 			)}
 		</Box>
+		</>
 	);
 }

@@ -48,7 +48,9 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 	}
 
 	if (!res.ok) {
-		throw new Error((json?.error as ApiErrorBody)?.message ?? res.statusText ?? "Request failed");
+		throw new Error(
+			(json?.error as ApiErrorBody)?.message ?? res.statusText ?? "Request failed",
+		);
 	}
 
 	// Backend wraps success in { data }
@@ -152,9 +154,7 @@ export async function getEvent(inboxId: string, eventId: number): Promise<Webhoo
 export async function getEventStats(
 	inboxId: string,
 ): Promise<{ count: number; totalSize: number }> {
-	return request<{ count: number; totalSize: number }>(
-		`${API}/events/${inboxId}/stats`,
-	);
+	return request<{ count: number; totalSize: number }>(`${API}/events/${inboxId}/stats`);
 }
 
 export async function clearEvents(inboxId: string): Promise<{ cleared?: boolean }> {

@@ -19,7 +19,7 @@ const INITIAL_RECONNECT_MS = 1_000;
 const MAX_RECONNECT_MS = 30_000;
 const BACKOFF_MULTIPLIER = 1.5;
 
-export function useWebSocket(webhookId: string | null) {
+export function useWebSocket(webhookId: string | null, onNewEvent?: () => void) {
 	const [events, setEvents] = useState<WebhookEvent[]>([]);
 	const [connected, setConnected] = useState(false);
 	const [bytesReceived, setBytesReceived] = useState(0);
@@ -27,58 +27,8 @@ export function useWebSocket(webhookId: string | null) {
 	const cancelledRef = useRef(false);
 	const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const reconnectAttemptRef = useRef(0);
-
-	const connect = (url: string) => {
-		const ws = new WebSocket(url);
-		wsRef.current = ws;
-
-		ws.onopen = () => {
-			if (cancelledRef.current) {
-				ws.close();
-				return;
-			}
-			reconnectAttemptRef.current = 0;
-			setConnected(true);
-		};
-
-		ws.onclose = () => {
-			if (!cancelledRef.current) setConnected(false);
-			wsRef.current = null;
-			if (cancelledRef.current) return;
-			const delay = Math.min(
-				INITIAL_RECONNECT_MS * BACKOFF_MULTIPLIER ** reconnectAttemptRef.current,
-				MAX_RECONNECT_MS,
-			);
-			reconnectAttemptRef.current += 1;
-			reconnectTimeoutRef.current = setTimeout(() => {
-				reconnectTimeoutRef.current = null;
-				connect(url);
-			}, delay);
-		};
-
-		ws.onerror = () => {
-			// Suppress "closed before connection" noise in React Strict Mode
-		};
-
-		ws.onmessage = (e) => {
-			const size = typeof e.data === "string" ? e.data.length : e.data.size;
-			setBytesReceived((prev) => prev + size);
-			const { isPaused, autoSelectNew, setSelectedEvent } = useInspectStore.getState();
-			if (isPaused) return;
-			try {
-				const data = JSON.parse(e.data);
-				if (data.type === "event:new" && data.event) {
-					const event = normalizeEvent(data.event as WebhookEvent);
-					setEvents((prev) => [event, ...prev]);
-					if (autoSelectNew) {
-						setSelectedEvent(event);
-					}
-				}
-			} catch {
-				// ignore parse errors
-			}
-		};
-	};
+	const onNewEventRef = useRef(onNewEvent);
+	onNewEventRef.current = onNewEvent;
 
 	useEffect(() => {
 		if (!webhookId) return;
@@ -87,6 +37,63 @@ export function useWebSocket(webhookId: string | null) {
 		reconnectAttemptRef.current = 0;
 		setBytesReceived(0);
 		const url = getWsUrl(webhookId);
+
+		const connect = (wsUrl: string) => {
+			const ws = new WebSocket(wsUrl);
+			wsRef.current = ws;
+
+			ws.onopen = () => {
+				if (cancelledRef.current) {
+					ws.close();
+					return;
+				}
+				reconnectAttemptRef.current = 0;
+				setConnected(true);
+			};
+
+			ws.onclose = () => {
+				if (!cancelledRef.current) setConnected(false);
+				wsRef.current = null;
+				if (cancelledRef.current) return;
+				const delay = Math.min(
+					INITIAL_RECONNECT_MS * BACKOFF_MULTIPLIER ** reconnectAttemptRef.current,
+					MAX_RECONNECT_MS,
+				);
+				reconnectAttemptRef.current += 1;
+				reconnectTimeoutRef.current = setTimeout(() => {
+					reconnectTimeoutRef.current = null;
+					connect(wsUrl);
+				}, delay);
+			};
+
+			ws.onerror = () => {
+				// Suppress "closed before connection" noise in React Strict Mode
+			};
+
+			ws.onmessage = (e) => {
+				const size = typeof e.data === "string" ? e.data.length : e.data.size;
+				setBytesReceived((prev) => prev + size);
+				const { isPaused, autoSelectNew, setSelectedEvent } = useInspectStore.getState();
+				if (isPaused) return;
+				try {
+					const data = JSON.parse(e.data);
+					if (data.type === "event:new" && data.event) {
+						const event = normalizeEvent(data.event as WebhookEvent);
+						setEvents((prev) => {
+							if (prev.some((p) => p.id === event.id)) return prev;
+							return [event, ...prev];
+						});
+						onNewEventRef.current?.();
+						if (autoSelectNew) {
+							setSelectedEvent(event);
+						}
+					}
+				} catch {
+					// ignore parse errors
+				}
+			};
+		};
+
 		connect(url);
 
 		return () => {

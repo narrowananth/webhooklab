@@ -24,14 +24,14 @@ export function formatXml(xml: string): string {
 
 		if (isClosing) {
 			indent = Math.max(0, indent - 1);
-			result += tab.repeat(indent) + part + "\n";
+			result += `${tab.repeat(indent) + part}\n`;
 		} else if (isSelfClosing || part.startsWith("<?")) {
-			result += tab.repeat(indent) + part + "\n";
+			result += `${tab.repeat(indent) + part}\n`;
 		} else if (isOpening) {
-			result += tab.repeat(indent) + part + "\n";
+			result += `${tab.repeat(indent) + part}\n`;
 			indent++;
 		} else if (part.trim()) {
-			result += tab.repeat(indent) + part + "\n";
+			result += `${tab.repeat(indent) + part}\n`;
 		}
 	}
 
