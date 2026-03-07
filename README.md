@@ -1,49 +1,15 @@
-# WebhookLab
+# LiveFlares
 
-Webhook testing & inspection platform. **Frontend URLs only** — backend is never exposed.
+Webhook testing and inspection platform.
 
-## Flow
+## Purpose
 
-- **`/`** — Auto-creates a webhook and redirects to inspect (no form)
-- **`/w/:slug`** — Custom URL: e.g. `/w/stripe-payments` → `yourdomain.com/webhook/stripe-payments`
-- **`/inspect/:id`** — Inspect captured requests
+LiveFlares helps developers receive, inspect, and debug webhook payloads from external services (Stripe, GitHub, etc.). Create endpoints, capture incoming requests, and view headers, body, and metadata in real time without wiring up your own infra.
 
-All webhook URLs use the frontend domain (e.g. `https://yourapp.com/webhook/xyz`), proxied to the backend.
+## Goal
 
-## Quick Start
+Make webhook endpoints trivial to create, capture, and inspect—without exposing backend infrastructure. You get instant, shareable URLs for testing integrations and debugging delivery issues.
 
-### 1. Backend (required for creating webhooks)
+## How It Works
 
-```bash
-cd backend
-cp .env.example .env   # Edit with your PostgreSQL credentials
-pnpm install
-pnpm db:migrate
-pnpm dev
-```
-
-Backend runs at **http://localhost:4000** (or your configured PORT).
-
-### 2. Frontend
-
-```bash
-cd frontend
-pnpm install
-pnpm dev
-```
-
-Frontend runs at **http://localhost:5173**.
-
-### 3. Environment
-
-**Backend** (`.env` in `backend/`):
-- `NODE_ENV`, `PORT`, `POSTGRES_*` (or `DATABASE_URL`), `FRONTEND_URL=http://localhost:5173`
-
-**Frontend** (optional `.env` in `frontend/`):
-- `VITE_BACKEND_URL=http://localhost:4000` (if backend uses a different port)
-
-## Troubleshooting
-
-- **Blank screen**: Check the browser console for errors. An error boundary will show a fallback if React crashes.
-- **"Create webhook" fails**: Ensure the backend is running and reachable at the URL in `VITE_BACKEND_URL`.
-- **Proxy error (ECONNREFUSED)**: The backend is not running. Start it with `cd backend && pnpm dev`.
+All webhook URLs live on the frontend domain (e.g. `https://yourapp.com/webhook/xyz`). The frontend proxies incoming requests to the backend; the backend is never exposed directly. Create a webhook, share its URL, and inspect every captured request in the UI.

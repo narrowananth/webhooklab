@@ -23,7 +23,7 @@ export const useAppStore = create<AppState>()(
 			toggleTheme: () => set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
 		}),
 		{
-			name: "webhooklab-app",
+			name: "liveflares-app",
 			partialize: (s) => ({ theme: s.theme }),
 			storage: {
 				getItem: (name) => {

@@ -1,6 +1,14 @@
 # Backend
 
-Multi-module backend built with Gradle and Java.
+Tech stack and developer workflow for the LiveFlares backend.
+
+## Tech Stack
+
+- **Java** (JDK 25), **Gradle**, **Spring Boot**
+- **PostgreSQL**, **Flyway**, Spring Data JPA
+- **Spring WebSocket**, Spring Security
+- **SpringDoc OpenAPI**
+- **Spotless** (formatting), **ktlint** (Kotlin DSL)
 
 ## Prerequisites
 
@@ -11,15 +19,7 @@ Multi-module backend built with Gradle and Java.
 
 ```bash
 ./gradlew build
-./gradlew clean
 ./gradlew clean build
-```
-
-## Test
-
-```bash
-./gradlew test
-./gradlew :<project-path>:test
 ```
 
 ## Run
@@ -28,7 +28,7 @@ Multi-module backend built with Gradle and Java.
 ./gradlew :<project-path>:bootRun
 ```
 
-Use the service module as `<project-path>` (e.g. `:services:brand`).
+Use the service module as `<project-path>` (e.g. `:services:liveflares`).
 
 ## Migration
 
@@ -40,21 +40,21 @@ Migrations use Flyway. Set `DATABASE_URL`, `DATABASE_USER`, and `DATABASE_PASSWO
 ./gradlew :<project-path>:repairMigration
 ```
 
-Use the module that contains migrations as `<project-path>` (e.g. `:services:brand`).
+Use the module that contains migrations as `<project-path>` (e.g. `:services:liveflares`).
 
 If you see **"type does not exist"**, the DB was likely baselined without running earlier migrations. Use a clean schema or a fresh database and run `applyMigration` again.
 
-## Code quality
+## Code Quality
 
 ```bash
 ./gradlew spotlessCheck
 ./gradlew spotlessApply
 ```
 
-## Project structure
+## Project Structure
 
-| Path        | Description              |
-|------------|--------------------------|
-| `libs/`    | Shared libraries         |
-| `services/`| Runnable applications   |
-| `buildSrc/`| Shared build logic       |
+| Path         | Description           |
+| ------------ | --------------------- |
+| `libs/`      | Shared libraries      |
+| `services/`  | Runnable applications |
+| `buildSrc/`  | Shared build logic    |

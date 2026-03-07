@@ -80,7 +80,7 @@ export function InspectFooter({
 				</Stack>
 				<Stack direction="row" alignItems="center" gap={3} lineHeight="1">
 					<a
-						href="https://github.com/webhooklab/docs"
+						href="https://github.com/liveflares/docs"
 						className="text-xs text-text-primary"
 						style={{ color: "var(--wl-accent)" }}
 						rel="noopener noreferrer"

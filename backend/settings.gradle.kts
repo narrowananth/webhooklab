@@ -1,6 +1,6 @@
 rootProject.name = "backend"
 
-include("services:webhooklab")
+include("services:liveflares")
 
 include("libs:common")
 

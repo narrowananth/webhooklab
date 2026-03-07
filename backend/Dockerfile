@@ -10,7 +10,7 @@ COPY buildSrc/ buildSrc/
 COPY libs/ libs/
 COPY services/ services/
 
-RUN chmod +x gradlew && ./gradlew :services:webhooklab:bootJar -x test --no-daemon
+RUN chmod +x gradlew && ./gradlew :services:liveflares:bootJar -x test --no-daemon
 
 FROM bellsoft/liberica-runtime-container:jre-25-glibc
 
@@ -23,7 +23,7 @@ RUN mkdir -p /app && chown -R app:app /app
 USER app
 WORKDIR /app
 
-COPY --from=builder --chown=app:app /app/services/webhooklab/build/libs/*.jar app.jar
+COPY --from=builder --chown=app:app /app/services/liveflares/build/libs/*.jar app.jar
 
 EXPOSE 4000
 

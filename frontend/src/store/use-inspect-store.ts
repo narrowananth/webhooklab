@@ -107,7 +107,7 @@ export const useInspectStore = create<InspectState>()(
 			setWsBytesReceived: (fn) => set((s) => ({ wsBytesReceived: fn(s.wsBytesReceived) })),
 		}),
 		{
-			name: "webhooklab-inspect",
+			name: "liveflares-inspect",
 			partialize: (s) => ({ autoSelectNew: s.autoSelectNew }),
 		},
 	),

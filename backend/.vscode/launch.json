@@ -10,10 +10,10 @@
 	  },
 	  {
 		"type": "java",
-		"name": "Webhooklab Application",
+		"name": "LiveFlares Application",
 		"request": "launch",
-		"mainClass": "webhooklab.WebhooklabApplication",
-		"projectName": "webhooklab",
+		"mainClass": "liveflares.LiveflaresApplication",
+		"projectName": "liveflares",
 		"cwd": "${workspaceFolder}/backend",
 		"vmArgs": "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
 	  }

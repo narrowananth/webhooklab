@@ -18,7 +18,7 @@ import { useInspectStore } from "@/store/use-inspect-store";
 import type { WebhookEvent } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 
 const DEFAULT_NO_FILTER_PAGE_SIZE = 100;
 
@@ -33,6 +33,7 @@ function useResolvedWebhookId(
 
 export function Inspect() {
 	const { webhookId } = useParams<{ webhookId: string }>();
+	const navigate = useNavigate();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const {
 		setSelectedEvent,
@@ -76,7 +77,7 @@ export function Inspect() {
 
 	const effectivePageSize = hasFilters ? pageSize : DEFAULT_NO_FILTER_PAGE_SIZE;
 
-	const { data: webhook, isLoading: webhookLoading } = useWebhookQuery(webhookId ?? undefined);
+	const { data: webhook, isLoading: webhookLoading, isError: webhookError } = useWebhookQuery(webhookId ?? undefined);
 	const resolvedId = useResolvedWebhookId(webhookId ?? undefined, webhook);
 	const { data: eventsData, isFetching: eventsFetching } = useEventsQuery(
 		resolvedId,
@@ -307,6 +308,33 @@ export function Inspect() {
 				justifyContent="center"
 			>
 				<Spinner size="xl" color="var(--wl-accent)" />
+			</Box>
+		);
+	}
+
+	const webhookNotFound = !!webhookId && !webhookLoading && (webhookError || !webhook);
+	if (webhookNotFound) {
+		return (
+			<Box
+				minH="100vh"
+				bg="var(--wl-bg)"
+				display="flex"
+				flexDirection="column"
+				alignItems="center"
+				justifyContent="center"
+				p={8}
+				gap={4}
+				color="var(--wl-text)"
+			>
+				<Text fontWeight={600} fontSize="lg" color="var(--wl-text)">
+					Webhook not found
+				</Text>
+				<Text color="var(--wl-text-muted)" fontSize="sm" textAlign="center" maxW="min(400px, 85vw)">
+					This webhook doesn't exist or the URL is incorrect. Create a new webhook or check the URL.
+				</Text>
+				<Button variant="primary" onClick={() => navigate("/", { replace: true })}>
+					Create new webhook
+				</Button>
 			</Box>
 		);
 	}

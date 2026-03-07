@@ -28,7 +28,7 @@ allprojects {
             target("**/src/*/java/**/*.java")
             targetExclude("**/build/**")
             palantirJavaFormat()
-            importOrder("webhooklab", "java", "javax", "*")
+            importOrder("liveflares", "java", "javax", "*")
             formatAnnotations()
             leadingSpacesToTabs()
             removeUnusedImports()

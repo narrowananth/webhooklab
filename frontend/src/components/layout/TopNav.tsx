@@ -146,8 +146,8 @@ export function TopNav({
 					}}
 				>
 					<img
-						src="/asset/logo/favicon.svg"
-						alt="WebhookLab"
+						src="/asset/logo/favicon.png"
+						alt="LiveFlares"
 						style={{
 							width: "var(--wl-logo-size)",
 							height: "var(--wl-logo-size)",
@@ -163,7 +163,7 @@ export function TopNav({
 						lineHeight="1"
 						alignSelf="center"
 					>
-						WebhookLab
+						LiveFlares
 					</Text>
 				</Link>
 			</Box>
