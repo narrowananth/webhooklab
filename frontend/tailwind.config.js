@@ -30,6 +30,7 @@ export default {
 					hover: "var(--wl-accent-hover)",
 				},
 				success: "var(--wl-success)",
+				error: "var(--wl-error)",
 			},
 			spacing: {
 				xs: "4px",

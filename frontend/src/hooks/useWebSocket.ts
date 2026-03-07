@@ -1,14 +1,13 @@
 /**
  * WebSocket hook for real-time webhook events.
- * Connects to backend WS, receives event:new messages,
- * and merges them into the events list. Respects isPaused from Zustand.
- * Uses deferred close to avoid "closed before connection" in React Strict Mode.
- * Auto-reconnects with exponential backoff on drop (backend restart, proxy, network).
+ * Matches old frontend (frontend/) logic: local React state for events list,
+ * connect to same-origin /ws, receive event:new, merge into list, respect isPaused.
+ * Syncs wsConnected to store so TopNav/Footer show connection status.
  */
+import { normalizeEvent } from "@/api";
+import { useInspectStore } from "@/store/use-inspect-store";
+import type { WebhookEvent } from "@/types";
 import { useEffect, useRef, useState } from "react";
-import { normalizeEvent } from "../api";
-import { useInspectStore } from "../store/useInspectStore";
-import type { WebhookEvent } from "../types";
 
 function getWsUrl(webhookId: string): string {
 	const base = window.location.origin.replace(/^http/, "ws");
@@ -31,11 +30,15 @@ export function useWebSocket(webhookId: string | null, onNewEvent?: () => void) 
 	onNewEventRef.current = onNewEvent;
 
 	useEffect(() => {
-		if (!webhookId) return;
+		if (!webhookId) {
+			useInspectStore.getState().setWsConnected(false);
+			return;
+		}
 
 		cancelledRef.current = false;
 		reconnectAttemptRef.current = 0;
 		setBytesReceived(0);
+		setEvents([]);
 		const url = getWsUrl(webhookId);
 
 		const connect = (wsUrl: string) => {
@@ -49,10 +52,14 @@ export function useWebSocket(webhookId: string | null, onNewEvent?: () => void) 
 				}
 				reconnectAttemptRef.current = 0;
 				setConnected(true);
+				useInspectStore.getState().setWsConnected(true);
 			};
 
 			ws.onclose = () => {
-				if (!cancelledRef.current) setConnected(false);
+				if (!cancelledRef.current) {
+					setConnected(false);
+					useInspectStore.getState().setWsConnected(false);
+				}
 				wsRef.current = null;
 				if (cancelledRef.current) return;
 				const delay = Math.min(
@@ -66,17 +73,18 @@ export function useWebSocket(webhookId: string | null, onNewEvent?: () => void) 
 				}, delay);
 			};
 
-			ws.onerror = () => {
-				// Suppress "closed before connection" noise in React Strict Mode
-			};
+			ws.onerror = () => {};
 
 			ws.onmessage = (e) => {
-				const size = typeof e.data === "string" ? e.data.length : e.data.size;
+				const size = typeof e.data === "string" ? e.data.length : (e.data as Blob).size;
 				setBytesReceived((prev) => prev + size);
 				const { isPaused, autoSelectNew, setSelectedEvent } = useInspectStore.getState();
 				if (isPaused) return;
 				try {
-					const data = JSON.parse(e.data);
+					const data = JSON.parse(e.data as string) as {
+						type?: string;
+						event?: WebhookEvent;
+					};
 					if (data.type === "event:new" && data.event) {
 						const event = normalizeEvent(data.event as WebhookEvent);
 						setEvents((prev) => {
@@ -104,12 +112,11 @@ export function useWebSocket(webhookId: string | null, onNewEvent?: () => void) 
 			}
 			const socket = wsRef.current;
 			wsRef.current = null;
-			// Only close if already open. If still CONNECTING, don't call close() — the browser
-			// would log "WebSocket is closed before the connection is established". When it
-			// opens, onopen will see cancelledRef and close it; if it fails, onclose runs and we don't reconnect.
 			queueMicrotask(() => {
 				if (socket?.readyState === WebSocket.OPEN) socket.close();
 			});
+			setConnected(false);
+			useInspectStore.getState().setWsConnected(false);
 		};
 	}, [webhookId]);
 

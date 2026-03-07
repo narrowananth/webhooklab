@@ -1,13 +1,11 @@
-/**
- * TopNav - Premium SaaS style navigation bar (56px)
- * Logo, Connected badge, Webhook URL box, Pause/Clear/Settings
- */
+import { Box, Button, IconButton, Text } from "@/components/ui/atoms";
+import { truncateUrlEnd } from "@/lib/truncateUrl";
+import { useInspectStore } from "@/store/use-inspect-store";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
-interface TopNavProps {
+export type TopNavProps = {
 	webhookUrl: string;
-	connected: boolean;
 	onCopy: () => void;
 	onClear: () => void;
 	isPaused: boolean;
@@ -16,11 +14,16 @@ interface TopNavProps {
 	onToggleTheme: () => void;
 	autoSelectNew: boolean;
 	onToggleAutoSelectNew: () => void;
-}
+	sidebarOpen: boolean;
+	onSidebarToggle: () => void;
+	hasSelection: boolean;
+};
+
+const URL_CHAR_PX = 7.8;
+const URL_PADDING_PX = 52;
 
 export function TopNav({
 	webhookUrl,
-	connected,
 	onCopy,
 	onClear,
 	isPaused,
@@ -29,16 +32,36 @@ export function TopNav({
 	onToggleTheme,
 	autoSelectNew,
 	onToggleAutoSelectNew,
+	sidebarOpen,
+	onSidebarToggle,
+	hasSelection,
 }: TopNavProps) {
+	const wsConnected = useInspectStore((s) => s.wsConnected);
+	const connected = wsConnected && !isPaused;
 	const [urlCopied, setUrlCopied] = useState(false);
 	const [optionsOpen, setOptionsOpen] = useState(false);
 	const optionsRef = useRef<HTMLDivElement>(null);
+	const urlContainerRef = useRef<HTMLDivElement>(null);
+	const [displayUrl, setDisplayUrl] = useState(webhookUrl || "—");
 
-	const handleCopy = () => {
-		onCopy();
-		setUrlCopied(true);
-		setTimeout(() => setUrlCopied(false), 1500);
-	};
+	useEffect(() => {
+		setDisplayUrl(webhookUrl || "—");
+	}, [webhookUrl]);
+
+	useEffect(() => {
+		const el = urlContainerRef.current;
+		if (!el) return;
+		const updateDisplay = () => {
+			const w = el.clientWidth;
+			const maxChars = Math.max(12, Math.floor((w - URL_PADDING_PX) / URL_CHAR_PX));
+			const url = webhookUrl || "—";
+			setDisplayUrl(truncateUrlEnd(url, maxChars));
+		};
+		updateDisplay();
+		const ro = new ResizeObserver(updateDisplay);
+		ro.observe(el);
+		return () => ro.disconnect();
+	}, [webhookUrl]);
 
 	useEffect(() => {
 		const handler = (e: MouseEvent) => {
@@ -50,138 +73,381 @@ export function TopNav({
 		return () => document.removeEventListener("click", handler);
 	}, []);
 
+	const handleCopy = async () => {
+		try {
+			await onCopy();
+			setUrlCopied(true);
+			setTimeout(() => setUrlCopied(false), 2000);
+		} catch {
+			//
+		}
+	};
+
 	return (
-		<header
-			className="h-14 min-h-14 flex-shrink-0 border-b border-border bg-surface px-6 flex flex-wrap items-center justify-between gap-4 transition-colors"
-			style={{ height: "56px", minHeight: "56px" }}
+		<Box
+			as="header"
+			h="var(--wl-header-height)"
+			minH="var(--wl-header-height)"
+			flexShrink={0}
+			borderBottomWidth="1px"
+			borderColor="var(--wl-border-subtle)"
+			bg="var(--wl-bg-subtle)"
+			px="var(--wl-fluid-px)"
+			display="flex"
+			flexWrap="wrap"
+			alignItems="center"
+			justifyContent="space-between"
+			gap="var(--wl-fluid-lg)"
 		>
-			{/* Left: Logo + WebhookLab + Connected badge */}
-			<div className="flex items-center gap-4 flex-shrink-0">
+			<Box
+				display="flex"
+				alignItems="center"
+				flexShrink={0}
+				w={{ base: "auto", md: "var(--wl-sidebar-width)" }}
+				minW={{ base: 0, md: "var(--wl-sidebar-min-width)" }}
+				maxW={{ md: "var(--wl-sidebar-max-width)" }}
+				h={10}
+				gap={2}
+			>
+				<IconButton
+					aria-label={sidebarOpen ? "Close request list" : "Open request list"}
+					variant="ghost"
+					size="md"
+					display={{ base: hasSelection ? "flex" : "none", md: "none" }}
+					w={9}
+					h={9}
+					rounded="lg"
+					bg="var(--wl-bg)"
+					borderWidth="1px"
+					borderColor="var(--wl-border-subtle)"
+					color="var(--wl-text-subtle)"
+					_hover={{ bg: "var(--wl-bg-hover)", borderColor: "var(--wl-border)" }}
+					onClick={onSidebarToggle}
+					className="flex items-center justify-center"
+				>
+					<Box
+						as="span"
+						className="material-symbols-outlined"
+						style={{ fontSize: "var(--wl-icon-xl)" }}
+					>
+						{sidebarOpen ? "chevron_left" : "menu"}
+					</Box>
+				</IconButton>
 				<Link
 					to="/"
-					className="font-semibold text-lg text-text-primary no-underline flex items-center gap-2 transition-opacity hover:opacity-90 leading-none"
+					style={{
+						fontWeight: 600,
+						fontSize: "var(--wl-fluid-font-md)",
+						color: "var(--wl-text)",
+						textDecoration: "none",
+						display: "flex",
+						alignItems: "center",
+						gap: "0.5rem",
+					}}
 				>
 					<img
 						src="/asset/logo/favicon.svg"
 						alt="WebhookLab"
-						className="rounded-md object-contain flex-shrink-0 align-middle"
-						style={{ width: "var(--wl-logo-size)", height: "var(--wl-logo-size)" }}
-					/>
-					<span className="hidden sm:inline leading-none self-center">WebhookLab</span>
-				</Link>
-				<div
-					className="flex items-center justify-center gap-2 px-2.5 py-1 rounded-md text-xs font-medium transition-colors leading-none"
-					style={{
-						backgroundColor: connected ? "var(--wl-connected-bg)" : "var(--wl-disconnected-bg)",
-						color: connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)",
-					}}
-				>
-					<span
-						className={`w-1.5 h-1.5 rounded-full ${connected ? "animate-pulse" : ""}`}
 						style={{
-							backgroundColor: connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)",
+							width: "var(--wl-logo-size)",
+							height: "var(--wl-logo-size)",
+							borderRadius: 6,
+							objectFit: "contain",
+							flexShrink: 0,
+							verticalAlign: "middle",
 						}}
 					/>
-					<span className="uppercase tracking-wide">
-						{connected ? "Connected" : "Disconnected"}
-					</span>
-				</div>
-			</div>
-
-			{/* Center: Webhook URL box */}
-			<div className="flex-1 max-w-2xl px-4 md:px-6 min-w-0 flex items-center">
-				<div className="flex items-center justify-center flex-1 bg-elevated border border-border rounded-md overflow-hidden min-h-9 transition-all hover:border-border/80 hover:shadow-sm hover:shadow-accent/5">
-					<span className="px-4 py-2 text-sm font-mono text-text-muted flex-1 overflow-x-auto whitespace-nowrap scrollbar-thin text-center">
-						{webhookUrl || "—"}
-					</span>
-					<button
-						type="button"
-						onClick={handleCopy}
-						aria-label="Copy URL"
-						className="p-2 flex items-center justify-center border-l border-border hover:bg-elevated/80 transition-colors active:scale-95"
+					<Text
+						as="span"
+						display={{ base: "none", sm: "inline" }}
+						lineHeight="1"
+						alignSelf="center"
 					>
-						<span
-							className="material-symbols-outlined text-base transition-colors"
-							style={{
-								color: urlCopied ? "var(--wl-success)" : undefined,
-							}}
+						WebhookLab
+					</Text>
+				</Link>
+			</Box>
+
+			<Box
+				flex={1}
+				minW={0}
+				maxW="var(--wl-header-url-max)"
+				px="var(--wl-fluid-sm)"
+				display="flex"
+				alignItems="center"
+				h={10}
+				justifyContent="center"
+			>
+				<Box
+					ref={urlContainerRef}
+					display="flex"
+					alignItems="center"
+					justifyContent="center"
+					flex={1}
+					minW={0}
+					bg="var(--wl-bg)"
+					borderWidth="1px"
+					borderColor="var(--wl-border-subtle)"
+					rounded="md"
+					overflow="hidden"
+					h={9}
+				>
+					<Text
+						px={3}
+						py={1.5}
+						fontSize="13px"
+						fontFamily="var(--wl-font-mono)"
+						lineHeight="1"
+						color="var(--wl-text-muted)"
+						flex={1}
+						minW={0}
+						overflow="hidden"
+						textOverflow="ellipsis"
+						whiteSpace="nowrap"
+						alignSelf="center"
+						textAlign="center"
+						title={webhookUrl || "—"}
+					>
+						{displayUrl}
+					</Text>
+					<IconButton
+						aria-label={urlCopied ? "Copied" : "Copy URL"}
+						variant="ghost"
+						size="sm"
+						onClick={handleCopy}
+						p={2}
+						h={9}
+						minW={9}
+						borderLeftWidth="1px"
+						borderColor="var(--wl-border-subtle)"
+						color={urlCopied ? "var(--wl-success)" : "var(--wl-text-subtle)"}
+						_hover={{ bg: "var(--wl-bg-hover)" }}
+						className="flex items-center justify-center flex-shrink-0"
+					>
+						<Box
+							as="span"
+							className="material-symbols-outlined"
+							style={{ fontSize: "var(--wl-icon-md)" }}
 						>
 							{urlCopied ? "check" : "content_copy"}
-						</span>
-					</button>
-				</div>
-			</div>
+						</Box>
+					</IconButton>
+				</Box>
+			</Box>
 
-			{/* Right: Pause, Clear, Settings */}
-			<div className="flex items-center gap-2 flex-shrink-0">
-				<button
-					type="button"
-					onClick={onTogglePause}
-					aria-label={isPaused ? "Resume" : "Pause"}
-					className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors hover:bg-elevated active:scale-95 ${
-						isPaused ? "text-text-muted" : "text-text-primary"
-					}`}
+			<Box display="flex" alignItems="center" gap={1} flexShrink={0} minW={0} flex="0 1 auto">
+				<Box
+					display="flex"
+					alignItems="center"
+					gap={{ base: 1, sm: "var(--wl-fluid-sm)" }}
+					flex="0 1 auto"
+					minW={0}
+					minH={10}
+					py={1}
+					overflowX="auto"
+					overflowY="hidden"
+					flexWrap="nowrap"
+					className="scrollbar-hide"
 				>
-					<span className="material-symbols-outlined text-lg">pause</span>
-					<span className="hidden md:inline">Pause</span>
-				</button>
-				<button
-					type="button"
-					onClick={onClear}
-					aria-label="Clear"
-					className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-text-secondary hover:bg-elevated hover:text-text-primary transition-colors active:scale-95"
-				>
-					<span className="material-symbols-outlined text-lg">delete_sweep</span>
-					<span className="hidden md:inline">Clear</span>
-				</button>
-				<button
-					type="button"
-					onClick={onToggleTheme}
-					aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-					className="p-2 rounded-md flex items-center justify-center text-text-muted hover:bg-elevated transition-colors active:scale-95"
-				>
-					<span className="material-symbols-outlined text-xl">
-						{theme === "dark" ? "light_mode" : "dark_mode"}
-					</span>
-				</button>
-				{/* Settings / Options */}
-				<div className="relative" ref={optionsRef}>
-					<button
-						type="button"
-						onClick={() => setOptionsOpen((v) => !v)}
-						aria-label="Settings"
-						aria-expanded={optionsOpen}
-						className="w-9 h-9 rounded-md flex items-center justify-center text-text-muted hover:bg-elevated transition-colors active:scale-95"
+					<Box
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
+						gap={2}
+						px={{ base: 2, sm: 3 }}
+						py={1.5}
+						rounded="full"
+						bg={connected ? "var(--wl-connected-bg)" : "var(--wl-disconnected-bg)"}
+						borderWidth={0}
+						flexShrink={0}
 					>
-						<span className="material-symbols-outlined text-xl">settings</span>
-					</button>
+						<Box
+							w={2}
+							h={2}
+							rounded="full"
+							bg={connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"}
+							alignSelf="center"
+						/>
+						<Text
+							fontSize="12px"
+							fontWeight={600}
+							lineHeight="1"
+							color={
+								connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"
+							}
+							textTransform="uppercase"
+							letterSpacing="0.05em"
+							alignSelf="center"
+							display={{ base: "none", sm: "block" }}
+						>
+							{connected ? "Connected" : "Disconnected"}
+						</Text>
+						<Text
+							fontSize="11px"
+							fontWeight={600}
+							lineHeight="1"
+							color={
+								connected ? "var(--wl-connected-fg)" : "var(--wl-disconnected-fg)"
+							}
+							alignSelf="center"
+							display={{ base: "block", sm: "none" }}
+						>
+							{connected ? "ON" : "OFF"}
+						</Text>
+					</Box>
+					<IconButton
+						aria-label={isPaused ? "Resume" : "Pause"}
+						variant="ghost"
+						size="md"
+						onClick={onTogglePause}
+						w={9}
+						h={9}
+						rounded="lg"
+						bg={isPaused ? "var(--wl-bg-subtle)" : "var(--wl-bg)"}
+						color={isPaused ? "var(--wl-text-subtle)" : "var(--wl-text)"}
+						className="header-action-btn flex-shrink-0"
+					>
+						<Box
+							as="span"
+							className="material-symbols-outlined"
+							style={{ fontSize: "var(--wl-icon-xl)" }}
+						>
+							{isPaused ? "play_arrow" : "pause"}
+						</Box>
+					</IconButton>
+					<IconButton
+						aria-label="Clear"
+						variant="ghost"
+						size="md"
+						onClick={onClear}
+						w={9}
+						h={9}
+						rounded="lg"
+						color="var(--wl-text-subtle)"
+						className="header-action-btn flex-shrink-0"
+					>
+						<Box
+							as="span"
+							className="material-symbols-outlined"
+							style={{ fontSize: "var(--wl-icon-xl)" }}
+						>
+							delete_sweep
+						</Box>
+					</IconButton>
+					<IconButton
+						aria-label={
+							theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+						}
+						variant="ghost"
+						size="md"
+						onClick={onToggleTheme}
+						w={9}
+						h={9}
+						rounded="lg"
+						color="var(--wl-text-subtle)"
+						className="header-action-btn flex-shrink-0"
+					>
+						<Box
+							as="span"
+							className="material-symbols-outlined"
+							style={{ fontSize: "var(--wl-icon-xl)" }}
+						>
+							{theme === "dark" ? "light_mode" : "dark_mode"}
+						</Box>
+					</IconButton>
+				</Box>
+				{/* 3-dot Options: outside scroll so dropdown is not clipped by overflow */}
+				<Box position="relative" ref={optionsRef} flexShrink={0}>
+					<IconButton
+						aria-label="Options"
+						aria-expanded={optionsOpen}
+						variant="ghost"
+						size="md"
+						onClick={(e) => {
+							e.stopPropagation();
+							setOptionsOpen((v) => !v);
+						}}
+						w={9}
+						h={9}
+						rounded="lg"
+						color="var(--wl-text-subtle)"
+						className="header-action-btn"
+					>
+						<Box
+							as="span"
+							className="material-symbols-outlined"
+							style={{ fontSize: "var(--wl-icon-xl)" }}
+						>
+							more_vert
+						</Box>
+					</IconButton>
 					{optionsOpen && (
-						<div className="absolute right-0 top-full mt-1 min-w-[220px] py-1 bg-surface border border-border rounded-lg shadow-xl shadow-black/30 z-50">
-							<button
-								type="button"
+						<Box
+							position="absolute"
+							right={0}
+							top="100%"
+							mt={1}
+							minW="220px"
+							py={1}
+							bg="var(--wl-bg)"
+							borderWidth="1px"
+							borderColor="var(--wl-border-subtle)"
+							rounded="lg"
+							className="shadow-lg z-50"
+						>
+							<Button
+								variant="ghost"
+								size="sm"
+								w="full"
+								justifyContent="space-between"
+								px={4}
+								py={2.5}
+								textAlign="left"
+								color="var(--wl-text)"
+								_hover={{ bg: "var(--wl-bg-hover)" }}
 								onClick={(e) => {
 									e.stopPropagation();
 									onToggleAutoSelectNew();
 								}}
-								className="w-full flex items-center justify-between gap-3 px-4 py-2.5 text-left text-sm text-text-primary hover:bg-elevated"
+								className="flex gap-3"
 							>
-								<span>Auto-select new requests</span>
-								<div
-									className={`w-10 h-6 rounded-full relative transition-colors border flex-shrink-0 ${
-										autoSelectNew ? "bg-accent border-accent" : "bg-elevated border-border"
-									}`}
+								<Text as="span" fontSize="sm">
+									Auto-select new requests
+								</Text>
+								<Box
+									w={10}
+									h={6}
+									rounded="full"
+									position="relative"
+									borderWidth="1px"
+									flexShrink={0}
+									backgroundColor={
+										autoSelectNew ? "var(--wl-accent)" : "var(--wl-bg-subtle)"
+									}
+									borderColor={
+										autoSelectNew
+											? "var(--wl-accent)"
+											: "var(--wl-border-subtle)"
+									}
 								>
-									<span
-										className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-left ${
-											autoSelectNew ? "left-5" : "left-1"
-										}`}
+									<Box
+										as="span"
+										position="absolute"
+										top={1}
+										left={autoSelectNew ? 5 : 1}
+										w={4}
+										h={4}
+										rounded="full"
+										bg="white"
+										shadow="sm"
+										transition="left 0.2s"
 									/>
-								</div>
-							</button>
-						</div>
+								</Box>
+							</Button>
+						</Box>
 					)}
-				</div>
-			</div>
-		</header>
+				</Box>
+			</Box>
+		</Box>
 	);
 }

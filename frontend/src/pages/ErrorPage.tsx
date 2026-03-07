@@ -1,5 +1,5 @@
-import { Box, Button, Text } from "@chakra-ui/react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Box, Button, Text } from "@/components/ui/atoms";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export function ErrorPage() {
 	const navigate = useNavigate();
@@ -11,7 +11,7 @@ export function ErrorPage() {
 			minH="100vh"
 			bg="var(--wl-bg)"
 			display="flex"
-			flexDir="column"
+			flexDirection="column"
 			alignItems="center"
 			justifyContent="center"
 			p={8}
@@ -21,7 +21,9 @@ export function ErrorPage() {
 			<Text color="var(--wl-text-muted)" fontSize="sm">
 				Make sure the backend is running.
 			</Text>
-			<Button onClick={() => navigate("/", { replace: true })}>Try again</Button>
+			<Button variant="primary" onClick={() => navigate("/", { replace: true })}>
+				Try again
+			</Button>
 		</Box>
 	);
 }

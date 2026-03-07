@@ -1,11 +1,7 @@
-/**
- * Custom URL: /w/:slug - creates webhook with slug or shows existing.
- * e.g. /w/stripe-payments -> webhook URL: yourdomain.com/webhook/stripe-payments
- */
-import { Box, Spinner, Text } from "@chakra-ui/react";
+import { createWebhook, getWebhookBySlug } from "@/api";
+import { Box, Spinner, Text } from "@/components/ui/atoms";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { createWebhook, getWebhookBySlug } from "../api";
 
 export function CustomUrl() {
 	const { slug } = useParams<{ slug: string }>();
@@ -24,7 +20,6 @@ export function CustomUrl() {
 				if (!cancelled) navigate(`/inspect/${w.id}`, { replace: true });
 			})
 			.catch(() => {
-				// 404 - create new with this slug
 				createWebhook({ slug: cleanSlug })
 					.then(({ id }) => {
 						if (!cancelled) navigate(`/inspect/${id}`, { replace: true });
@@ -47,7 +42,7 @@ export function CustomUrl() {
 			minH="100vh"
 			bg="var(--wl-bg)"
 			display="flex"
-			flexDir="column"
+			flexDirection="column"
 			alignItems="center"
 			justifyContent="center"
 			gap={4}

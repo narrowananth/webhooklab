@@ -166,11 +166,11 @@ public class WebhookRequestServiceImpl implements WebhookRequestService {
 			if (statusFilter != null && !statusFilter.isBlank()) {
 				var status = root.get("status");
 				var coalesce = cb.coalesce(status, cb.literal(200));
-				Expression<Number> num = coalesce.as(Number.class);
+				Expression<Integer> num = coalesce.as(Integer.class);
 				switch (statusFilter) {
-					case "2xx" -> list.add(cb.and(cb.ge(num, cb.literal(200)), cb.le(num, cb.literal(299))));
-					case "4xx" -> list.add(cb.and(cb.ge(num, cb.literal(400)), cb.le(num, cb.literal(499))));
-					case "5xx" -> list.add(cb.and(cb.ge(num, cb.literal(500)), cb.le(num, cb.literal(599))));
+					case "2xx" -> list.add(cb.and(cb.ge(num, 200), cb.le(num, 299)));
+					case "4xx" -> list.add(cb.and(cb.ge(num, 400), cb.le(num, 499)));
+					case "5xx" -> list.add(cb.and(cb.ge(num, 500), cb.le(num, 599)));
 					default -> {
 						/* ignore invalid */
 					}

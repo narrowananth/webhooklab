@@ -1,12 +1,8 @@
-/**
- * Applies the theme from Zustand store to the document.
- * Sets data-theme attribute on html for CSS variable-based theming.
- */
+import { useAppStore } from "@/store/use-app-store";
 import { useEffect } from "react";
-import { useInspectStore } from "../store/useInspectStore";
 
 export function useThemeEffect(): void {
-	const theme = useInspectStore((s) => s.theme);
+	const theme = useAppStore((s) => s.theme);
 
 	useEffect(() => {
 		document.documentElement.setAttribute("data-theme", theme);

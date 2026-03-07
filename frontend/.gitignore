@@ -25,9 +25,10 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Lock files (keep pnpm-lock.yaml at root)
+# Lock files (optional: keep one)
 package-lock.json
 yarn.lock
+pnpm-lock.yaml
 
 # Vite
 *.local

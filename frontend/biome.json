@@ -6,8 +6,8 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"include": ["src/**/*.ts", "**/*.json"],
-		"ignore": ["node_modules", "dist", "*.config.*", "drizzle/*.sql", "pnpm-lock.yaml"]
+		"include": ["src/**/*.ts", "src/**/*.tsx", "**/*.json", "vite.config.ts"],
+		"ignore": ["node_modules", "dist", "*.config.*", "pnpm-lock.yaml", "package-lock.json"]
 	},
 	"formatter": {
 		"enabled": true,

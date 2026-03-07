@@ -1,19 +1,15 @@
-/**
- * TanStack Query hooks for WebhookLab API calls.
- * Handles caching, background refetching, and invalidation.
- */
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	clearEvents,
+	createWebhook,
 	getEvent,
 	getEventStats,
 	getEvents,
 	getWebhookByIdOrSlug,
 	searchEvents,
-} from "../api";
-import type { SearchEventsParams } from "../types";
+} from "@/api";
+import type { SearchEventsParams } from "@/types";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-/** Query keys for cache invalidation */
 export const webhookKeys = {
 	all: ["webhooks"] as const,
 	detail: (id: string) => [...webhookKeys.all, id] as const,
@@ -38,7 +34,6 @@ export const eventKeys = {
 		] as const,
 };
 
-/** Fetch webhook inbox details (supports UUID or slug for /webhook/:id routes) */
 export function useWebhookQuery(webhookId: string | undefined) {
 	return useQuery({
 		queryKey: webhookKeys.detail(webhookId ?? ""),
@@ -47,7 +42,6 @@ export function useWebhookQuery(webhookId: string | undefined) {
 	});
 }
 
-/** Fetch events list with pagination */
 export function useEventsQuery(inboxId: string | undefined, page = 1, limit = 50) {
 	return useQuery({
 		queryKey: [...eventKeys.all(inboxId ?? ""), page, limit],
@@ -57,7 +51,6 @@ export function useEventsQuery(inboxId: string | undefined, page = 1, limit = 50
 	});
 }
 
-/** Fetch events with search/filters (server-side) when filters are active */
 export function useSearchEventsQuery(
 	inboxId: string | undefined,
 	params: SearchEventsParams,
@@ -71,7 +64,6 @@ export function useSearchEventsQuery(
 	});
 }
 
-/** Fetch event stats (count, totalSize) for an inbox */
 export function useEventStatsQuery(inboxId: string | undefined) {
 	return useQuery({
 		queryKey: eventKeys.stats(inboxId ?? ""),
@@ -80,7 +72,6 @@ export function useEventStatsQuery(inboxId: string | undefined) {
 	});
 }
 
-/** Fetch single event (for detail pane when not in list) */
 export function useEventQuery(inboxId: string | undefined, eventId: number | undefined) {
 	return useQuery({
 		queryKey: eventKeys.detail(inboxId ?? "", eventId ?? 0),
@@ -89,7 +80,6 @@ export function useEventQuery(inboxId: string | undefined, eventId: number | und
 	});
 }
 
-/** Clear all events for an inbox - invalidates events query */
 export function useClearEventsMutation(inboxId: string | undefined) {
 	const queryClient = useQueryClient();
 	return useMutation({
@@ -97,6 +87,17 @@ export function useClearEventsMutation(inboxId: string | undefined) {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: eventKeys.all(inboxId ?? "") });
 			queryClient.invalidateQueries({ queryKey: eventKeys.stats(inboxId ?? "") });
+		},
+	});
+}
+
+export function useCreateWebhookMutation() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (opts?: { name?: string; slug?: string }) => createWebhook(opts),
+		onSuccess: (data) => {
+			queryClient.setQueryData(webhookKeys.detail(String(data.id)), data);
+			queryClient.invalidateQueries({ queryKey: webhookKeys.all });
 		},
 	});
 }

@@ -1,32 +1,25 @@
-/**
- * Inspect page: header, left request list panel, right inspector, footer.
- * RequestListPanel has search + Method/Status/IP/Request ID filters. Inspector shows selected request.
- * When filters active: server-side search. Otherwise: server-side paginated list (full dataset).
- */
-import { Box, Flex, Spinner, Text } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
-import { InspectHeader } from "../components/inspect/InspectHeader";
-import { RequestListPanel } from "../components/inspect/RequestListPanel";
-import { InspectMainContent } from "../components/inspect/InspectMainContent";
-import { InspectFooter } from "../components/inspect/InspectFooter";
+import { UUID_REGEX } from "@/api";
+import { Sidebar, TopNav } from "@/components/layout";
+import { Box, Button, Spinner, Stack, Text } from "@/components/ui/atoms";
+import { EmptyState, InspectDetailPane, InspectFooter } from "@/components/ui/organisms";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import {
-	useWebhookQuery,
+	eventKeys,
+	useClearEventsMutation,
+	useEventStatsQuery,
 	useEventsQuery,
 	useSearchEventsQuery,
-	useEventStatsQuery,
-	useClearEventsMutation,
-	eventKeys,
-} from "../hooks/useWebhookQueries";
+	useWebhookQuery,
+} from "@/hooks/useWebhookQueries";
+import { copyToClipboard } from "@/lib/clipboard";
+import { toFullWebhookUrl } from "@/lib/truncateUrl";
+import { useAppStore } from "@/store/use-app-store";
+import { useInspectStore } from "@/store/use-inspect-store";
+import type { WebhookEvent } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useWebSocket } from "../hooks/useWebSocket";
-import { useInspectStore } from "../store/useInspectStore";
-import { toFullWebhookUrl } from "../utils/truncateUrl";
-import { copyToClipboard } from "../utils/clipboard";
-import { UUID_REGEX } from "../api";
-import type { WebhookEvent } from "../types";
+import { useEffect, useRef, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 
-/** Resolved webhook ID (UUID) for API calls - URL param may be UUID or slug */
 function useResolvedWebhookId(
 	webhookId: string | undefined,
 	webhook: { id: string } | undefined,
@@ -44,20 +37,32 @@ export function Inspect() {
 		selectedEvent,
 		resetFilters,
 		searchFilter,
+		setSearchFilter,
 		methodFilter,
+		setMethodFilter,
 		statusFilter,
+		setStatusFilter,
 		ipFilter,
+		setIpFilter,
 		requestIdFilter,
+		setRequestIdFilter,
 		pageSize,
 		setPageSize,
+		activeDetailTab,
+		setActiveDetailTab,
 		isPaused,
+		togglePaused,
 		autoSelectNew,
+		sidebarOpen,
 		setSidebarOpen,
 	} = useInspectStore();
+	const theme = useAppStore((s) => s.theme);
+	const toggleTheme = useAppStore((s) => s.toggleTheme);
+	const toggleAutoSelectNew = useInspectStore((s) => s.toggleAutoSelectNew);
 	const queryClient = useQueryClient();
 	const [searchPage, setSearchPage] = useState(1);
-	/** Server-side list page when no filters (browse all requests); filters use searchPage */
 	const [listPage, setListPage] = useState(1);
+	const [showClearConfirm, setShowClearConfirm] = useState(false);
 
 	const hasFilters = !!(
 		searchFilter?.trim() ||
@@ -69,11 +74,10 @@ export function Inspect() {
 
 	const { data: webhook, isLoading: webhookLoading } = useWebhookQuery(webhookId ?? undefined);
 	const resolvedId = useResolvedWebhookId(webhookId ?? undefined, webhook);
-	const { data: eventsData, isLoading: eventsLoading, isFetching: eventsFetching } = useEventsQuery(
-		resolvedId,
-		hasFilters ? 1 : listPage,
-		pageSize,
-	);
+	const {
+		data: eventsData,
+		isFetching: eventsFetching,
+	} = useEventsQuery(resolvedId, hasFilters ? 1 : listPage, pageSize);
 	const clearMutation = useClearEventsMutation(resolvedId);
 	const handleNewEvent = () => {
 		if (resolvedId) {
@@ -81,10 +85,8 @@ export function Inspect() {
 			queryClient.invalidateQueries({ queryKey: eventKeys.all(resolvedId) });
 		}
 	};
-	const { events: wsEvents, setEvents, connected } = useWebSocket(resolvedId ?? null, handleNewEvent);
-	const { data: stats, isLoading: statsLoading } = useEventStatsQuery(
-		resolvedId,
-	);
+	const { events: wsEvents, setEvents } = useWebSocket(resolvedId ?? null, handleNewEvent);
+	const { data: stats, isLoading: statsLoading } = useEventStatsQuery(resolvedId);
 
 	const searchQueryParams = {
 		search: searchFilter?.trim() || undefined,
@@ -96,21 +98,19 @@ export function Inspect() {
 		limit: pageSize,
 	};
 
-	const { data: searchData, isLoading: searchLoading, isFetching: searchFetching } = useSearchEventsQuery(
-		resolvedId,
-		searchQueryParams,
-		hasFilters,
-	);
+	const {
+		data: searchData,
+		isLoading: searchLoading,
+		isFetching: searchFetching,
+	} = useSearchEventsQuery(resolvedId, searchQueryParams, hasFilters);
 
 	useEffect(() => {
-		// Merge REST first page into WS buffer when on page 1 (keep newest-first by id after merge)
 		if (eventsData?.events && !hasFilters && listPage === 1) {
 			const rest = eventsData.events;
 			const restIds = new Set(rest.map((r) => r.id));
 			setEvents((prev) => {
 				const wsOnly = prev.filter((p) => !restIds.has(p.id));
 				const merged = [...wsOnly, ...rest];
-				// Dedupe by id and sort descending by id so page 1 is always newest-first
 				const seen = new Set<number>();
 				return merged
 					.filter((e) => {
@@ -123,7 +123,6 @@ export function Inspect() {
 		}
 	}, [eventsData?.events, hasFilters, listPage, setEvents]);
 
-	// When resuming from pause: refetch events from server to get logs stored while paused
 	const prevPausedRef = useRef(isPaused);
 	useEffect(() => {
 		if (prevPausedRef.current && !isPaused && resolvedId) {
@@ -132,50 +131,36 @@ export function Inspect() {
 		prevPausedRef.current = isPaused;
 	}, [isPaused, resolvedId, queryClient]);
 
-	useEffect(() => {
-		if (hasFilters) {
-			setSearchPage(1);
-			setListPage(1);
-		}
-	}, [searchFilter, methodFilter, statusFilter, ipFilter, requestIdFilter]);
-
-	useEffect(() => {
-		setSearchPage(1);
-		setListPage(1);
-	}, [pageSize]);
-
-	// No filters: server-side pagination. On page 1 use merged WS + REST for real-time; other pages use REST only.
-	const displayEvents =
-		hasFilters
-			? (searchData?.events ?? [])
-			: listPage === 1
-				? wsEvents
-				: (eventsData?.events ?? []);
+	const displayEvents = hasFilters
+		? (searchData?.events ?? [])
+		: listPage === 1
+			? wsEvents
+			: (eventsData?.events ?? []);
 
 	const handleSelectEvent = (event: WebhookEvent) => {
 		setSelectedEvent(event);
-		setSidebarOpen(false); // close mobile sidebar overlay when a request is selected
+		setSidebarOpen(false);
 		setSearchParams((prev) => {
 			prev.set("req", String(event.id));
 			return prev;
 		});
 	};
 
-	// When "Auto-select new requests" is ON: keep selection on the latest record (by id = newest).
-	// When OFF: only the user-clicked or URL-synced record is shown.
-	// Use ref + stable deps to avoid "Maximum update depth exceeded" from effect re-triggering.
+	const latestId = displayEvents.length > 0 ? Math.max(...displayEvents.map((e) => e.id)) : null;
 	const lastAutoSelectedIdRef = useRef<number | null>(null);
-	// Derive latest by max id so we're not dependent on list order (merge/refetch can reorder).
-	const latestId =
-		displayEvents.length > 0
-			? Math.max(...displayEvents.map((e) => e.id))
-			: null;
 	useEffect(() => {
 		if (!autoSelectNew || latestId == null) return;
 		const latest = displayEvents.find((e) => e.id === latestId);
 		if (!latest) return;
 		if (selectedEvent?.id === latestId) {
 			lastAutoSelectedIdRef.current = latestId;
+			if (searchParams.get("req") !== String(latestId)) {
+				setSearchParams((prev) => {
+					const next = new URLSearchParams(prev);
+					next.set("req", String(latestId));
+					return next;
+				});
+			}
 			return;
 		}
 		if (lastAutoSelectedIdRef.current === latestId) return;
@@ -186,9 +171,16 @@ export function Inspect() {
 			next.set("req", String(latestId));
 			return next;
 		});
-	}, [autoSelectNew, latestId, selectedEvent?.id, displayEvents, setSelectedEvent, setSearchParams]);
+	}, [
+		autoSelectNew,
+		latestId,
+		selectedEvent?.id,
+		displayEvents,
+		searchParams,
+		setSelectedEvent,
+		setSearchParams,
+	]);
 
-	// Sync selection from URL (req param) only when Auto-select is OFF — when ON, latest record is the source of truth.
 	useEffect(() => {
 		if (autoSelectNew) return;
 		const reqId = searchParams.get("req");
@@ -198,6 +190,7 @@ export function Inspect() {
 		const match = displayEvents.find((e) => String(e.id) === reqId);
 		if (match) setSelectedEvent(match);
 	}, [autoSelectNew, searchParams, displayEvents, selectedEvent, setSelectedEvent]);
+
 	const pagination =
 		hasFilters && searchData?.pagination
 			? {
@@ -207,7 +200,7 @@ export function Inspect() {
 					onPrev: () => setSearchPage((p) => Math.max(1, p - 1)),
 					onNext: () =>
 						setSearchPage((p) =>
-							Math.min(searchData.pagination!.totalPages, p + 1),
+							Math.min(searchData.pagination?.totalPages ?? 1, p + 1),
 						),
 				}
 			: !hasFilters && eventsData?.pagination
@@ -218,31 +211,39 @@ export function Inspect() {
 						onPrev: () => setListPage((p) => Math.max(1, p - 1)),
 						onNext: () =>
 							setListPage((p) =>
-								Math.min(eventsData.pagination!.totalPages, p + 1),
+								Math.min(eventsData.pagination?.totalPages ?? 1, p + 1),
 							),
 					}
 				: undefined;
 
-	const [showClearConfirm, setShowClearConfirm] = useState(false);
 	const fullWebhookUrl = toFullWebhookUrl(webhook?.url ?? "");
 	const handleCopy = async () => {
 		const urlToCopy = fullWebhookUrl || `${window.location.origin}/webhook/${webhookId ?? ""}`;
 		await copyToClipboard(urlToCopy);
 	};
+
 	const performClear = async () => {
 		try {
 			await clearMutation.mutateAsync();
 			setSelectedEvent(null);
 			setSidebarOpen(false);
 			resetFilters();
-			setEvents([]);
+			setEvents(() => []);
 			setSearchPage(1);
 			setListPage(1);
 			setShowClearConfirm(false);
 		} catch {
-			// ignore
+			//
 		}
 	};
+
+	const hasActiveFilters = !!(
+		searchFilter?.trim() ||
+		(methodFilter && methodFilter !== "All") ||
+		(statusFilter && statusFilter !== "All") ||
+		ipFilter?.trim() ||
+		requestIdFilter?.trim()
+	);
 
 	if (!webhookId) {
 		return (
@@ -252,11 +253,7 @@ export function Inspect() {
 		);
 	}
 
-	// Full-page spinner only for initial load (webhook + events). When filters are active,
-	// keep the UI visible and show loading state in the request list instead of blanking the app.
-	const showFullPageSpinner =
-		webhookLoading ||
-		(eventsLoading && !eventsData && !hasFilters);
+	const showFullPageSpinner = webhookLoading;
 
 	if (showFullPageSpinner) {
 		return (
@@ -277,20 +274,27 @@ export function Inspect() {
 			position="fixed"
 			inset={0}
 			display="flex"
-			flexDir="column"
+			flexDirection="column"
 			overflow="hidden"
 			minW={0}
 			bg="var(--wl-bg)"
 			color="var(--wl-text)"
 		>
-			<InspectHeader
+			<TopNav
 				webhookUrl={fullWebhookUrl}
-				connected={connected && !isPaused}
 				onCopy={handleCopy}
 				onClear={() => setShowClearConfirm(true)}
+				isPaused={isPaused}
+				onTogglePause={togglePaused}
+				theme={theme}
+				onToggleTheme={toggleTheme}
+				autoSelectNew={autoSelectNew}
+				onToggleAutoSelectNew={toggleAutoSelectNew}
+				sidebarOpen={sidebarOpen}
+				onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
+				hasSelection={!!selectedEvent}
 			/>
 
-			{/* Clear confirmation modal - theme-aware, centered on all screen sizes */}
 			{showClearConfirm && (
 				<Box
 					position="fixed"
@@ -300,9 +304,9 @@ export function Inspect() {
 					alignItems="center"
 					justifyContent="center"
 					bg="rgba(0,0,0,0.5)"
-					backdropFilter="blur(8px)"
 					onClick={(e) => e.target === e.currentTarget && setShowClearConfirm(false)}
 				>
+					{/* biome-ignore lint/a11y/useSemanticElements: Chakra Box used for styling; dialog semantics via role/aria */}
 					<Box
 						role="dialog"
 						aria-modal="true"
@@ -310,80 +314,147 @@ export function Inspect() {
 						bg="var(--wl-surface)"
 						borderWidth="1px"
 						borderColor="var(--wl-border)"
-						rounded="2xl"
+						borderRadius="2xl"
 						maxW="400px"
 						w="calc(100% - 2rem)"
 						mx={4}
 						p={8}
 						onClick={(e) => e.stopPropagation()}
-						boxShadow="0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px var(--wl-border-subtle)"
+						boxShadow="0 25px 50px -12px rgba(0,0,0,0.25)"
 					>
-						<Flex align="center" gap={4} mb={5}>
+						<Stack direction="row" alignItems="center" gap={4} mb={5}>
 							<Box
 								w={12}
 								h={12}
-								rounded="xl"
+								borderRadius="xl"
 								bg="var(--wl-error-muted)"
 								color="var(--wl-error)"
 								display="flex"
 								alignItems="center"
 								justifyContent="center"
 							>
-								<span className="material-symbols-outlined" style={{ fontSize: 26 }}>
+								<span
+									className="material-symbols-outlined"
+									style={{ fontSize: 26 }}
+								>
 									delete_sweep
 								</span>
 							</Box>
-							<Box textAlign="left" flex={1}>
-								<Text id="clear-dialog-title" fontWeight={600} fontSize="lg" color="var(--wl-text)">
+							<Box flex={1}>
+								<Text
+									id="clear-dialog-title"
+									fontWeight={600}
+									fontSize="lg"
+									color="var(--wl-text)"
+								>
 									Clear all requests
 								</Text>
 								<Text fontSize="sm" color="var(--wl-text-muted)" mt={0.5}>
 									This cannot be undone
 								</Text>
 							</Box>
-						</Flex>
-						<Text color="var(--wl-text-secondary)" fontSize="sm" lineHeight="1.6" mb={6}>
-							All webhook requests will be permanently deleted and will not be available again.
+						</Stack>
+						<Text
+							color="var(--wl-text-secondary)"
+							fontSize="sm"
+							lineHeight="1.6"
+							mb={6}
+						>
+							All webhook requests will be permanently deleted.
 						</Text>
-						<Flex gap={3} justify="flex-end">
-							<button
-								type="button"
-								className="wl-modal-btn-cancel"
-								style={{
-									padding: "8px 16px",
-									fontSize: "14px",
-									fontWeight: 500,
-									borderRadius: "var(--wl-radius-lg)",
-									cursor: "pointer",
+						<Stack direction="row" gap={3} justifyContent="flex-end">
+							<Button
+								variant="secondary"
+								size="md"
+								px={4}
+								py={2}
+								fontSize="14px"
+								fontWeight={500}
+								borderRadius="var(--wl-radius-lg)"
+								bg="transparent"
+								borderWidth="1px"
+								borderColor="var(--wl-border)"
+								color="var(--wl-text-secondary)"
+								_hover={{
+									bg: "var(--wl-bg-hover)",
+									borderColor: "var(--wl-border)",
+									color: "var(--wl-text)",
+								}}
+								_focusVisible={{
+									outline: "2px solid var(--wl-accent)",
+									outlineOffset: "2px",
 								}}
 								onClick={() => setShowClearConfirm(false)}
 							>
 								Cancel
-							</button>
-							<button
-								type="button"
-								className="wl-modal-btn-danger"
+							</Button>
+							<Button
+								variant="danger"
+								size="md"
 								disabled={clearMutation.isPending}
-								style={{
-									padding: "8px 16px",
-									fontSize: "14px",
-									fontWeight: 500,
-									borderRadius: "var(--wl-radius-lg)",
-									cursor: clearMutation.isPending ? "wait" : "pointer",
+								px={4}
+								py={2}
+								fontSize="14px"
+								fontWeight={500}
+								borderRadius="var(--wl-radius-lg)"
+								bg="var(--wl-error)"
+								borderColor="var(--wl-error)"
+								color="white"
+								_hover={{
+									opacity: 1,
+									filter: "brightness(1.12)",
+								}}
+								_active={{
+									filter: "brightness(0.95)",
+								}}
+								_focusVisible={{
+									outline: "2px solid var(--wl-error)",
+									outlineOffset: "2px",
+								}}
+								_disabled={{
+									opacity: 0.8,
+									cursor: "wait",
 								}}
 								onClick={() => performClear()}
 							>
 								{clearMutation.isPending ? "Deleting…" : "Delete all"}
-							</button>
-						</Flex>
+							</Button>
+						</Stack>
 					</Box>
 				</Box>
 			)}
 
-			<Box flex={1} minH={0} minW={0} display="flex" overflow="hidden" position="relative" pb={{ md: 10 }}>
-				<RequestListPanel
+			<Box
+				flex={1}
+				minH={0}
+				minW={0}
+				display="flex"
+				overflow="hidden"
+				position="relative"
+				pb={{ base: 0, md: "var(--wl-footer-bar-height)" }}
+			>
+				<Sidebar
 					events={displayEvents}
+					selectedEvent={selectedEvent}
 					onSelectEvent={handleSelectEvent}
+					searchFilter={searchFilter}
+					onSearchFilterChange={setSearchFilter}
+					methodFilter={methodFilter}
+					onMethodFilterChange={setMethodFilter}
+					statusFilter={statusFilter}
+					onStatusFilterChange={setStatusFilter}
+					ipFilter={ipFilter}
+					onIpFilterChange={setIpFilter}
+					requestIdFilter={requestIdFilter}
+					onRequestIdFilterChange={setRequestIdFilter}
+					onClearFilters={() => {
+						setSearchFilter("");
+						setMethodFilter("");
+						setStatusFilter("All");
+						setIpFilter("");
+						setRequestIdFilter("");
+					}}
+					hasActiveFilters={hasActiveFilters}
 					filterMode={hasFilters}
 					pagination={pagination}
 					pageSize={pageSize}
@@ -392,22 +463,53 @@ export function Inspect() {
 						setListPage(1);
 						setSearchPage(1);
 					}}
+					newestEventId={latestId}
 					isSearching={hasFilters && searchLoading}
 					isRefetching={hasFilters ? searchFetching : eventsFetching}
+					sidebarOpen={sidebarOpen}
+					onCloseSidebar={() => setSidebarOpen(false)}
 				/>
-				<InspectMainContent events={displayEvents} />
+				<Box
+					flex={1}
+					minH={0}
+					minW={0}
+					display="flex"
+					flexDirection="column"
+					overflow="hidden"
+					bg="var(--wl-bg)"
+				>
+					{selectedEvent ? (
+						<InspectDetailPane
+							event={selectedEvent}
+							activeDetailTab={activeDetailTab}
+							onTabChange={setActiveDetailTab}
+							searchFilter={searchFilter}
+						/>
+					) : (
+						<EmptyState
+							title={
+								displayEvents.length > 0
+									? "Select a request to inspect"
+									: "Waiting for webhook events..."
+							}
+							description={
+								displayEvents.length > 0
+									? "Detailed payload, headers, and response data will appear here."
+									: "Send a HTTP request to your unique URL to see the request details here in real-time. We support POST, GET, PUT, and more."
+							}
+						/>
+					)}
+				</Box>
 			</Box>
 
 			<InspectFooter
 				webhookId={resolvedId ?? null}
 				requestCount={
-					stats?.count ??
-					pagination?.total ??
-					(hasFilters ? 0 : displayEvents.length)
+					stats?.count ?? pagination?.total ?? (hasFilters ? 0 : displayEvents.length)
 				}
 				totalSizeBytes={stats?.totalSize ?? 0}
 				statsLoading={statsLoading}
-				wsConnected={connected && !isPaused}
+				appVersion="1.0.0"
 			/>
 		</Box>
 	);

@@ -3,23 +3,9 @@
 	<head>
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="/asset/logo/favicon.svg" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>WebhookLab - Webhook Testing & Inspection</title>
 		<link rel="stylesheet" href="/asset/icon/material-symbols-outlined.css" />
-		<script>
-			(function() {
-				try {
-					var theme = 'light';
-					var s = localStorage.getItem('webhooklab-inspect');
-					if (s) {
-						var o = JSON.parse(s);
-						if (o.state && o.state.theme) theme = o.state.theme;
-					}
-					document.documentElement.setAttribute('data-theme', theme);
-					document.documentElement.style.colorScheme = theme;
-				} catch (_) {}
-			})();
-		</script>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>WebhookLab</title>
 	</head>
 	<body>
 		<div id="root"></div>
