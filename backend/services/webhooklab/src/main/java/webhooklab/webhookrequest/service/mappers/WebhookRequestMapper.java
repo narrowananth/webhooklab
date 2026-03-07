@@ -2,8 +2,10 @@ package webhooklab.webhookrequest.service.mappers;
 
 import webhooklab.mapper.config.MapperCoreConfig;
 import webhooklab.webhook.entity.Webhook;
+import webhooklab.webhookrequest.dto.EventNewMessageDto;
 import webhooklab.webhookrequest.dto.EventStatsDto;
 import webhooklab.webhookrequest.dto.ReplayResultDto;
+import webhooklab.webhookrequest.dto.StatsSnapshotMessageDto;
 import webhooklab.webhookrequest.dto.WebhookRequestDto;
 import webhooklab.webhookrequest.entity.WebhookRequest;
 
@@ -42,4 +44,14 @@ public interface WebhookRequestMapper {
 	@Mapping(target = "statusText", source = "statusText")
 	@Mapping(target = "ok", source = "ok")
 	ReplayResultDto toReplayResultDto(int status, String statusText, boolean ok);
+
+	@Mapping(target = "type", constant = "event:new")
+	@Mapping(target = "event", source = "request")
+	@Mapping(target = "stats", source = "stats")
+	EventNewMessageDto toEventNewMessageDto(WebhookRequest request, EventStatsDto stats);
+
+	@Mapping(target = "type", constant = "stats:snapshot")
+	@Mapping(target = "count", source = "count")
+	@Mapping(target = "totalSize", source = "totalSize")
+	StatsSnapshotMessageDto toStatsSnapshotMessageDto(EventStatsDto stats);
 }

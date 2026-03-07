@@ -1,5 +1,6 @@
 package webhooklab.websocket;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
@@ -10,6 +11,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class EventWebSocketHandler extends TextWebSocketHandler {
 
 	private final WebSocketSessionStore sessionStore;
+
+	@Autowired(required = false)
+	private WebhookStatsSnapshotSender statsSnapshotSender;
 
 	public EventWebSocketHandler(WebSocketSessionStore sessionStore) {
 		this.sessionStore = sessionStore;
@@ -23,6 +27,9 @@ public class EventWebSocketHandler extends TextWebSocketHandler {
 			return;
 		}
 		sessionStore.add(webhookId, session);
+		if (statsSnapshotSender != null) {
+			statsSnapshotSender.sendToSession(session, webhookId);
+		}
 	}
 
 	@Override

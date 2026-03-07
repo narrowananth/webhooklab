@@ -64,11 +64,11 @@ export function useSearchEventsQuery(
 	});
 }
 
-export function useEventStatsQuery(inboxId: string | undefined) {
+export function useEventStatsQuery(inboxId: string | undefined, enabled = true) {
 	return useQuery({
 		queryKey: eventKeys.stats(inboxId ?? ""),
 		queryFn: () => getEventStats(inboxId as string),
-		enabled: !!inboxId,
+		enabled: !!inboxId && enabled,
 	});
 }
 
@@ -87,6 +87,10 @@ export function useClearEventsMutation(inboxId: string | undefined) {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: eventKeys.all(inboxId ?? "") });
 			queryClient.invalidateQueries({ queryKey: eventKeys.stats(inboxId ?? "") });
+			queryClient.setQueryData(eventKeys.stats(inboxId ?? ""), {
+				count: 0,
+				totalSize: 0,
+			});
 		},
 	});
 }

@@ -132,7 +132,9 @@ export function RequestItem({ event, isSelected, onSelect, isNew }: RequestItemP
 					>
 						public
 					</Box>
-					<Text as="span" truncate>{event.ip ?? "—"}</Text>
+					<Text as="span" truncate>
+						{event.ip ?? "—"}
+					</Text>
 				</Stack>
 				<Stack direction="row" alignItems="center" gap={1.5} as="span" flexShrink={0}>
 					<Box

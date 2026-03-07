@@ -5,8 +5,10 @@ import webhooklab.capture.service.CaptureService;
 import webhooklab.common.enums.ErrorCode;
 import webhooklab.webhook.entity.Webhook;
 import webhooklab.webhook.service.WebhookService;
+import webhooklab.webhookrequest.dto.EventStatsDto;
 import webhooklab.webhookrequest.entity.WebhookRequest;
 import webhooklab.webhookrequest.service.WebhookRequestService;
+import webhooklab.webhookrequest.service.mappers.WebhookRequestMapper;
 import webhooklab.websocket.WebSocketBroadcastService;
 
 import java.io.IOException;
@@ -31,6 +33,7 @@ public class CaptureServiceImpl implements CaptureService {
 
 	private final WebhookService webhookService;
 	private final WebhookRequestService webhookRequestService;
+	private final WebhookRequestMapper webhookRequestMapper;
 	private final ObjectMapper objectMapper;
 	private final WebSocketBroadcastService webSocketBroadcastService;
 
@@ -59,7 +62,7 @@ public class CaptureServiceImpl implements CaptureService {
 		WebhookRequest saved = webhookRequestService.capture(
 				webhook, request.getMethod(), url, headers, queryParams, body, rawBody, ip);
 
-		String payload = buildEventNewPayload(saved);
+		String payload = buildEventNewPayload(saved, webhook);
 		if (payload != null) {
 			webSocketBroadcastService.broadcast(webhook.getWebhookId().toString(), payload);
 			if (webhook.getSlug() != null && !webhook.getSlug().isBlank()) {
@@ -126,23 +129,16 @@ public class CaptureServiceImpl implements CaptureService {
 		return request.getRemoteAddr();
 	}
 
-	private String buildEventNewPayload(WebhookRequest r) {
-		Map<String, Object> message = new HashMap<>();
-		message.put("type", "event:new");
-		Map<String, Object> event = new HashMap<>();
-		event.put("id", r.getId());
-		event.put("method", r.getMethod());
-		event.put("url", r.getUrl());
-		event.put("headers", r.getHeaders() != null ? r.getHeaders() : Map.<String, String>of());
-		event.put("queryParams", r.getQueryParams() != null ? r.getQueryParams() : Map.<String, String>of());
-		event.put("body", r.getBody());
-		event.put("rawBody", r.getRawBody());
-		event.put("ip", r.getIp());
-		event.put("status", r.getStatus() != null ? r.getStatus() : 200);
-		event.put("timestamp", r.getCreatedAt());
-		message.put("event", event);
+	private String buildEventNewPayload(WebhookRequest r, Webhook webhook) {
+		EventStatsDto stats = null;
 		try {
-			return objectMapper.writeValueAsString(message);
+			stats = webhookRequestService.getStats(webhook.getWebhookId().toString());
+		} catch (Exception e) {
+			// omit stats on failure; frontend can use API
+		}
+		var dto = webhookRequestMapper.toEventNewMessageDto(r, stats);
+		try {
+			return objectMapper.writeValueAsString(dto);
 		} catch (JsonProcessingException e) {
 			return null;
 		}

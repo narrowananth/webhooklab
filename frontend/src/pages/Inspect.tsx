@@ -17,8 +17,10 @@ import { useAppStore } from "@/store/use-app-store";
 import { useInspectStore } from "@/store/use-inspect-store";
 import type { WebhookEvent } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
+
+const DEFAULT_NO_FILTER_PAGE_SIZE = 100;
 
 function useResolvedWebhookId(
 	webhookId: string | undefined,
@@ -72,31 +74,40 @@ export function Inspect() {
 		requestIdFilter?.trim()
 	);
 
+	const effectivePageSize = hasFilters ? pageSize : DEFAULT_NO_FILTER_PAGE_SIZE;
+
 	const { data: webhook, isLoading: webhookLoading } = useWebhookQuery(webhookId ?? undefined);
 	const resolvedId = useResolvedWebhookId(webhookId ?? undefined, webhook);
-	const {
-		data: eventsData,
-		isFetching: eventsFetching,
-	} = useEventsQuery(resolvedId, hasFilters ? 1 : listPage, pageSize);
+	const { data: eventsData, isFetching: eventsFetching } = useEventsQuery(
+		resolvedId,
+		hasFilters ? 1 : listPage,
+		effectivePageSize,
+	);
 	const clearMutation = useClearEventsMutation(resolvedId);
-	const handleNewEvent = () => {
-		if (resolvedId) {
-			queryClient.invalidateQueries({ queryKey: eventKeys.stats(resolvedId) });
-			queryClient.invalidateQueries({ queryKey: eventKeys.all(resolvedId) });
-		}
-	};
-	const { events: wsEvents, setEvents } = useWebSocket(resolvedId ?? null, handleNewEvent);
-	const { data: stats, isLoading: statsLoading } = useEventStatsQuery(resolvedId);
+	// WS-primary sync: do not invalidate events/stats on every event:new; list is updated via useWebSocket setEvents
+	const handleNewEvent = () => {};
+	const {
+		events: wsEvents,
+		setEvents,
+		connected: wsConnected,
+		liveStats,
+		setLiveStats,
+	} = useWebSocket(resolvedId ?? null, handleNewEvent);
+	const statsFromApi = hasFilters || isPaused || !wsConnected;
+	const { data: stats, isLoading: statsLoading } = useEventStatsQuery(resolvedId, statsFromApi);
 
-	const searchQueryParams = {
-		search: searchFilter?.trim() || undefined,
-		method: methodFilter && methodFilter !== "All" ? methodFilter : undefined,
-		status: statusFilter && statusFilter !== "All" ? statusFilter : undefined,
-		ip: ipFilter?.trim() || undefined,
-		requestId: requestIdFilter ? Number.parseInt(requestIdFilter, 10) : undefined,
-		page: searchPage,
-		limit: pageSize,
-	};
+	const searchQueryParams = useMemo(
+		() => ({
+			search: searchFilter?.trim() || undefined,
+			method: methodFilter && methodFilter !== "All" ? methodFilter : undefined,
+			status: statusFilter && statusFilter !== "All" ? statusFilter : undefined,
+			ip: ipFilter?.trim() || undefined,
+			requestId: requestIdFilter ? Number.parseInt(requestIdFilter, 10) : undefined,
+			page: searchPage,
+			limit: pageSize,
+		}),
+		[searchFilter, methodFilter, statusFilter, ipFilter, requestIdFilter, searchPage, pageSize],
+	);
 
 	const {
 		data: searchData,
@@ -126,10 +137,29 @@ export function Inspect() {
 	const prevPausedRef = useRef(isPaused);
 	useEffect(() => {
 		if (prevPausedRef.current && !isPaused && resolvedId) {
-			queryClient.invalidateQueries({ queryKey: eventKeys.all(resolvedId) });
+			// Single refetch of current page when unpausing; do not refetch stats when no filters (real-time from WS)
+			if (hasFilters) {
+				queryClient.invalidateQueries({
+					queryKey: eventKeys.search(resolvedId, searchQueryParams),
+				});
+				queryClient.invalidateQueries({ queryKey: eventKeys.stats(resolvedId) });
+			} else {
+				queryClient.invalidateQueries({
+					queryKey: [...eventKeys.all(resolvedId), listPage, effectivePageSize],
+				});
+				// Do not invalidate stats when !hasFilters — real-time sync resumes from next WS message
+			}
 		}
 		prevPausedRef.current = isPaused;
-	}, [isPaused, resolvedId, queryClient]);
+	}, [
+		isPaused,
+		resolvedId,
+		queryClient,
+		hasFilters,
+		listPage,
+		effectivePageSize,
+		searchQueryParams,
+	]);
 
 	const displayEvents = hasFilters
 		? (searchData?.events ?? [])
@@ -216,6 +246,17 @@ export function Inspect() {
 					}
 				: undefined;
 
+	const useLiveStats = !hasFilters && wsConnected && !isPaused;
+	const footerRequestCount = useLiveStats
+		? (liveStats?.count ?? pagination?.total ?? displayEvents.length)
+		: hasFilters
+			? (searchData?.pagination?.total ?? stats?.count ?? 0)
+			: (stats?.count ?? pagination?.total ?? displayEvents.length);
+	const footerTotalSizeBytes = useLiveStats
+		? (liveStats?.totalSize ?? 0)
+		: (stats?.totalSize ?? 0);
+	const footerStatsLoading = useLiveStats ? false : statsLoading;
+
 	const fullWebhookUrl = toFullWebhookUrl(webhook?.url ?? "");
 	const handleCopy = async () => {
 		const urlToCopy = fullWebhookUrl || `${window.location.origin}/webhook/${webhookId ?? ""}`;
@@ -229,6 +270,7 @@ export function Inspect() {
 			setSidebarOpen(false);
 			resetFilters();
 			setEvents(() => []);
+			setLiveStats({ count: 0, totalSize: 0 });
 			setSearchPage(1);
 			setListPage(1);
 			setShowClearConfirm(false);
@@ -457,12 +499,17 @@ export function Inspect() {
 					hasActiveFilters={hasActiveFilters}
 					filterMode={hasFilters}
 					pagination={pagination}
-					pageSize={pageSize}
-					onPageSizeChange={(size) => {
-						setPageSize(size);
-						setListPage(1);
-						setSearchPage(1);
-					}}
+					pageSize={effectivePageSize}
+					pageSizeEditable={hasFilters}
+					onPageSizeChange={
+						hasFilters
+							? (size) => {
+									setPageSize(size);
+									setListPage(1);
+									setSearchPage(1);
+								}
+							: undefined
+					}
 					newestEventId={latestId}
 					isSearching={hasFilters && searchLoading}
 					isRefetching={hasFilters ? searchFetching : eventsFetching}
@@ -504,11 +551,9 @@ export function Inspect() {
 
 			<InspectFooter
 				webhookId={resolvedId ?? null}
-				requestCount={
-					stats?.count ?? pagination?.total ?? (hasFilters ? 0 : displayEvents.length)
-				}
-				totalSizeBytes={stats?.totalSize ?? 0}
-				statsLoading={statsLoading}
+				requestCount={footerRequestCount}
+				totalSizeBytes={footerTotalSizeBytes}
+				statsLoading={footerStatsLoading}
 				appVersion="1.0.0"
 			/>
 		</Box>

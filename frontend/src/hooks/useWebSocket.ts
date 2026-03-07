@@ -1,9 +1,3 @@
-/**
- * WebSocket hook for real-time webhook events.
- * Matches old frontend (frontend/) logic: local React state for events list,
- * connect to same-origin /ws, receive event:new, merge into list, respect isPaused.
- * Syncs wsConnected to store so TopNav/Footer show connection status.
- */
 import { normalizeEvent } from "@/api";
 import { useInspectStore } from "@/store/use-inspect-store";
 import type { WebhookEvent } from "@/types";
@@ -22,6 +16,7 @@ export function useWebSocket(webhookId: string | null, onNewEvent?: () => void) 
 	const [events, setEvents] = useState<WebhookEvent[]>([]);
 	const [connected, setConnected] = useState(false);
 	const [bytesReceived, setBytesReceived] = useState(0);
+	const [liveStats, setLiveStats] = useState<{ count: number; totalSize: number } | null>(null);
 	const wsRef = useRef<WebSocket | null>(null);
 	const cancelledRef = useRef(false);
 	const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -39,6 +34,7 @@ export function useWebSocket(webhookId: string | null, onNewEvent?: () => void) 
 		reconnectAttemptRef.current = 0;
 		setBytesReceived(0);
 		setEvents([]);
+		setLiveStats(null);
 		const url = getWsUrl(webhookId);
 
 		const connect = (wsUrl: string) => {
@@ -79,18 +75,32 @@ export function useWebSocket(webhookId: string | null, onNewEvent?: () => void) 
 				const size = typeof e.data === "string" ? e.data.length : (e.data as Blob).size;
 				setBytesReceived((prev) => prev + size);
 				const { isPaused, autoSelectNew, setSelectedEvent } = useInspectStore.getState();
-				if (isPaused) return;
 				try {
 					const data = JSON.parse(e.data as string) as {
 						type?: string;
 						event?: WebhookEvent;
+						stats?: { count?: number; totalSize?: number };
+						count?: number;
+						totalSize?: number;
 					};
+					if (data.type === "stats:snapshot" && !isPaused) {
+						const count = data.count ?? 0;
+						const totalSize = data.totalSize ?? 0;
+						setLiveStats({ count, totalSize });
+						return;
+					}
+					if (isPaused) return;
 					if (data.type === "event:new" && data.event) {
 						const event = normalizeEvent(data.event as WebhookEvent);
 						setEvents((prev) => {
 							if (prev.some((p) => p.id === event.id)) return prev;
 							return [event, ...prev];
 						});
+						if (data.stats != null) {
+							const count = data.stats.count ?? 0;
+							const totalSize = data.stats.totalSize ?? 0;
+							setLiveStats({ count, totalSize });
+						}
 						onNewEventRef.current?.();
 						if (autoSelectNew) {
 							setSelectedEvent(event);
@@ -120,5 +130,5 @@ export function useWebSocket(webhookId: string | null, onNewEvent?: () => void) 
 		};
 	}, [webhookId]);
 
-	return { events, setEvents, connected, bytesReceived };
+	return { events, setEvents, connected, bytesReceived, liveStats, setLiveStats };
 }

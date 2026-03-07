@@ -1,5 +1,5 @@
-import { Box, Spinner, Stack, Text } from "@/components/ui/atoms";
 import { createWebhook } from "@/api";
+import { Box, Spinner, Stack, Text } from "@/components/ui/atoms";
 import { useCreateWebhookMutation, webhookKeys } from "@/hooks/useWebhookQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -19,7 +19,7 @@ export function AutoCreateWebhook() {
 		if (didRun.current) return;
 		didRun.current = true;
 		createMutation.mutate(undefined);
-	}, []);
+	}, [createMutation.mutate]);
 
 	// Navigate when mutation succeeds (reliable vs callback, works across React Query versions)
 	useEffect(() => {
@@ -40,12 +40,7 @@ export function AutoCreateWebhook() {
 
 	// Fallback: if mutation is still pending after a while, create via direct fetch (e.g. proxy/callback issues)
 	useEffect(() => {
-		if (
-			createMutation.isSuccess ||
-			createMutation.isError ||
-			fallbackUsed
-		)
-			return;
+		if (createMutation.isSuccess || createMutation.isError || fallbackUsed) return;
 		const t = setTimeout(() => {
 			if (createMutation.isSuccess || createMutation.isError) return;
 			setFallbackUsed(true);
@@ -79,13 +74,7 @@ export function AutoCreateWebhook() {
 			gap={0}
 			px={4}
 		>
-			<Stack
-				direction="column"
-				alignItems="center"
-				gap={5}
-				maxW="320px"
-				textAlign="center"
-			>
+			<Stack direction="column" alignItems="center" gap={5} maxW="320px" textAlign="center">
 				<Box position="relative">
 					<Spinner size="xl" color="var(--wl-accent)" />
 					<Box
