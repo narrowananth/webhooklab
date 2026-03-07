@@ -3,7 +3,7 @@
  * RequestListPanel has search + Method/Status/IP/Request ID filters. Inspector shows selected request.
  * When filters active: server-side search. Otherwise: server-side paginated list (full dataset).
  */
-import { Box, Spinner, Text } from "@chakra-ui/react";
+import { Box, Flex, Spinner, Text } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { InspectHeader } from "../components/inspect/InspectHeader";
@@ -223,12 +223,13 @@ export function Inspect() {
 					}
 				: undefined;
 
+	const [showClearConfirm, setShowClearConfirm] = useState(false);
 	const fullWebhookUrl = toFullWebhookUrl(webhook?.url ?? "");
 	const handleCopy = async () => {
 		const urlToCopy = fullWebhookUrl || `${window.location.origin}/webhook/${webhookId ?? ""}`;
 		await copyToClipboard(urlToCopy);
 	};
-	const handleClear = async () => {
+	const performClear = async () => {
 		try {
 			await clearMutation.mutateAsync();
 			setSelectedEvent(null);
@@ -237,6 +238,7 @@ export function Inspect() {
 			setEvents([]);
 			setSearchPage(1);
 			setListPage(1);
+			setShowClearConfirm(false);
 		} catch {
 			// ignore
 		}
@@ -285,8 +287,98 @@ export function Inspect() {
 				webhookUrl={fullWebhookUrl}
 				connected={connected && !isPaused}
 				onCopy={handleCopy}
-				onClear={handleClear}
+				onClear={() => setShowClearConfirm(true)}
 			/>
+
+			{/* Clear confirmation modal - theme-aware, centered on all screen sizes */}
+			{showClearConfirm && (
+				<Box
+					position="fixed"
+					inset={0}
+					zIndex={9999}
+					display="flex"
+					alignItems="center"
+					justifyContent="center"
+					bg="rgba(0,0,0,0.5)"
+					backdropFilter="blur(8px)"
+					onClick={(e) => e.target === e.currentTarget && setShowClearConfirm(false)}
+				>
+					<Box
+						role="dialog"
+						aria-modal="true"
+						aria-labelledby="clear-dialog-title"
+						bg="var(--wl-surface)"
+						borderWidth="1px"
+						borderColor="var(--wl-border)"
+						rounded="2xl"
+						maxW="400px"
+						w="calc(100% - 2rem)"
+						mx={4}
+						p={8}
+						onClick={(e) => e.stopPropagation()}
+						boxShadow="0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px var(--wl-border-subtle)"
+					>
+						<Flex align="center" gap={4} mb={5}>
+							<Box
+								w={12}
+								h={12}
+								rounded="xl"
+								bg="var(--wl-error-muted)"
+								color="var(--wl-error)"
+								display="flex"
+								alignItems="center"
+								justifyContent="center"
+							>
+								<span className="material-symbols-outlined" style={{ fontSize: 26 }}>
+									delete_sweep
+								</span>
+							</Box>
+							<Box textAlign="left" flex={1}>
+								<Text id="clear-dialog-title" fontWeight={600} fontSize="lg" color="var(--wl-text)">
+									Clear all requests
+								</Text>
+								<Text fontSize="sm" color="var(--wl-text-muted)" mt={0.5}>
+									This cannot be undone
+								</Text>
+							</Box>
+						</Flex>
+						<Text color="var(--wl-text-secondary)" fontSize="sm" lineHeight="1.6" mb={6}>
+							All webhook requests will be permanently deleted and will not be available again.
+						</Text>
+						<Flex gap={3} justify="flex-end">
+							<button
+								type="button"
+								className="wl-modal-btn-cancel"
+								style={{
+									padding: "8px 16px",
+									fontSize: "14px",
+									fontWeight: 500,
+									borderRadius: "var(--wl-radius-lg)",
+									cursor: "pointer",
+								}}
+								onClick={() => setShowClearConfirm(false)}
+							>
+								Cancel
+							</button>
+							<button
+								type="button"
+								className="wl-modal-btn-danger"
+								disabled={clearMutation.isPending}
+								style={{
+									padding: "8px 16px",
+									fontSize: "14px",
+									fontWeight: 500,
+									borderRadius: "var(--wl-radius-lg)",
+									cursor: clearMutation.isPending ? "wait" : "pointer",
+								}}
+								onClick={() => performClear()}
+							>
+								{clearMutation.isPending ? "Deleting…" : "Delete all"}
+							</button>
+						</Flex>
+					</Box>
+				</Box>
+			)}
 
 			<Box flex={1} minH={0} minW={0} display="flex" overflow="hidden" position="relative" pb={{ md: 10 }}>
 				<RequestListPanel

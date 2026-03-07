@@ -43,63 +43,63 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 				position="relative"
 				overflow="hidden"
 			>
-				{/* Subtle gradient background */}
+				{/* Soft ambient background */}
 				<Box
 					position="absolute"
 					inset={0}
-					opacity={0.4}
-					bgGradient="radial(circle at 30% 20%, var(--wl-accent) 0%, transparent 50%)"
+					opacity={0.5}
+					bgGradient="radial(circle at 50% 30%, var(--wl-accent-soft) 0%, transparent 55%)"
 					pointerEvents="none"
 				/>
 				<Box
 					position="absolute"
 					inset={0}
-					opacity={0.15}
-					bgGradient="radial(circle at 70% 80%, var(--wl-accent) 0%, transparent 45%)"
+					opacity={0.2}
+					bgGradient="radial(circle at 80% 70%, var(--wl-error-muted) 0%, transparent 40%)"
 					pointerEvents="none"
 				/>
 
-				<Box position="relative" w="full" maxW="md">
+				<Box position="relative" w="full" maxW="420px">
 					<Flex
 						flexDir="column"
 						align="center"
 						textAlign="center"
 						bg="var(--wl-surface)"
 						borderWidth="1px"
-						borderColor="var(--wl-border-subtle)"
+						borderColor="var(--wl-border)"
 						rounded="2xl"
 						p={10}
 						shadow="xl"
-						boxShadow="0 25px 50px -12px rgba(0,0,0,0.15)"
+						boxShadow="0 25px 50px -12px rgba(15,23,42,0.08), 0 0 0 1px rgba(15,23,42,0.03)"
 					>
-						{/* Icon */}
+						{/* Icon - softer treatment */}
 						<Flex
-							w={16}
-							h={16}
-							rounded="full"
-							bg="var(--wl-error-bg, rgba(239,68,68,0.12))"
-							color="var(--wl-error, #dc2626)"
+							w={14}
+							h={14}
+							rounded="xl"
+							bg="var(--wl-error-muted)"
+							color="var(--wl-error)"
 							align="center"
 							justify="center"
-							mb={5}
+							mb={6}
 						>
 							<span
 								className="material-symbols-outlined"
-								style={{ fontSize: 40, fontWeight: 200 }}
+								style={{ fontSize: 28 }}
 								aria-hidden
 							>
-								error_outline
+								warning
 							</span>
 						</Flex>
-						<Text fontSize="xl" fontWeight={700} mb={2} color="var(--wl-text)">
+						<Text fontSize="lg" fontWeight={600} mb={2} color="var(--wl-text)">
 							{this.props.title ?? "Something went wrong"}
 						</Text>
 						<Text
 							fontSize="sm"
-							color="var(--wl-text-subtle)"
-							mb={8}
-							lineHeight="tall"
-							maxW="360px"
+							color="var(--wl-text-muted)"
+							mb={6}
+							lineHeight="1.6"
+							maxW="340px"
 						>
 							{this.state.message || "An unexpected error occurred. Try reloading or try again."}
 						</Text>
@@ -108,8 +108,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 								size="md"
 								variant="outline"
 								borderColor="var(--wl-border)"
-								color="var(--wl-text)"
-								_hover={{ bg: "var(--wl-bg-muted)", borderColor: "var(--wl-border)" }}
+								color="var(--wl-text-secondary)"
+								_hover={{ bg: "var(--wl-bg-muted)", borderColor: "var(--wl-border)", color: "var(--wl-text)" }}
 								onClick={this.reset}
 							>
 								Try again
@@ -118,7 +118,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 								size="md"
 								bg="var(--wl-accent)"
 								color="white"
-								_hover={{ opacity: 0.9 }}
+								_hover={{ opacity: 0.92, bg: "var(--wl-accent-hover)" }}
 								onClick={() => window.location.reload()}
 							>
 								Reload page
