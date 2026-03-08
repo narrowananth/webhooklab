@@ -4,7 +4,6 @@ export const webhookInboxSchema = z.object({
 	id: z.string(),
 	slug: z.string().nullable().optional(),
 	url: z.string(),
-	name: z.string().nullable(),
 	createdAt: z.string().optional(),
 });
 

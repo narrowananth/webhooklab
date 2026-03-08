@@ -34,14 +34,13 @@ public class WebhookController {
 	public ResponseEntity<ApiResponse<Object>> create(
 			@Parameter(required = true) @RequestBody(required = false) @Validated WebhookCreateDto body,
 			HttpServletRequest request) {
-		String name = body != null ? body.getName() : null;
 		String slug = body != null ? body.getSlug() : null;
 		String origin = request.getHeader("Origin");
 		if (origin == null) {
 			origin = request.getHeader("Referer");
 		}
 		return responseBuilder.created(
-				webhookService.createWithUrl(name, slug, origin), "Webhook created successfully");
+				webhookService.createWithUrl(slug, origin), "Webhook created successfully");
 	}
 
 	@GetMapping("/by-slug/{slug}")

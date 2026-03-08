@@ -170,21 +170,28 @@ export function InspectDetailPane({
 	};
 
 	return (
-		<Box flex={1} display="flex" flexDirection="column" overflow="hidden" bg="var(--wl-bg)">
+		<Box
+			flex={1}
+			minH={0}
+			display="flex"
+			flexDirection="column"
+			overflow="hidden"
+			bg="var(--wl-bg)"
+		>
 			<Stack
 				direction="row"
 				h="48px"
 				minH="48px"
 				flexShrink={0}
 				alignItems="center"
-				justifyContent="center"
+				justifyContent="space-between"
 				px="var(--wl-fluid-px)"
 				py="var(--wl-fluid-py)"
 				borderBottomWidth="1px"
 				borderColor="var(--wl-border)"
 				bg="var(--wl-bg-subtle)"
 				gap={3}
-				flexWrap="wrap"
+				flexWrap="nowrap"
 			>
 				<Stack direction="row" alignItems="center" gap={2} minW={0} flex={1}>
 					<MethodBadge method={event.method} />
@@ -343,13 +350,13 @@ export function InspectDetailPane({
 				direction="row"
 				h="48px"
 				minH="48px"
-				py="var(--wl-fluid-py)"
 				px="var(--wl-fluid-px)"
+				py="var(--wl-fluid-py)"
 				gap={3}
 				borderBottomWidth="1px"
 				borderColor="var(--wl-border)"
 				bg="var(--wl-bg-subtle)"
-				overflowX="auto"
+				flexWrap="wrap"
 				alignItems="center"
 			>
 				{TABS.map((tab) => (

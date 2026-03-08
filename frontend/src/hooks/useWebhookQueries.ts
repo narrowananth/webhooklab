@@ -98,7 +98,7 @@ export function useClearEventsMutation(inboxId: string | undefined) {
 export function useCreateWebhookMutation() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: (opts?: { name?: string; slug?: string }) => createWebhook(opts),
+		mutationFn: (opts?: { slug?: string }) => createWebhook(opts),
 		onSuccess: (data) => {
 			queryClient.setQueryData(webhookKeys.detail(String(data.id)), data);
 			queryClient.invalidateQueries({ queryKey: webhookKeys.all });

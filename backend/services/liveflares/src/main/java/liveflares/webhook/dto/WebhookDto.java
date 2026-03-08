@@ -24,7 +24,6 @@ public class WebhookDto {
 	private Long pkId;
 
 	private UUID id;
-	private String name;
 	private String slug;
 	private String url;
 

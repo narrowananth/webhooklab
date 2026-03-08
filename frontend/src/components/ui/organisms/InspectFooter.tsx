@@ -29,22 +29,19 @@ export function InspectFooter({
 
 	return (
 		<Box
-			position="fixed"
-			bottom={0}
-			left={0}
-			right={0}
-			zIndex={20}
+			h="var(--wl-footer-bar-height)"
+			minH="var(--wl-footer-bar-height)"
 			bg="var(--wl-bg-subtle)"
 			borderTopWidth="1px"
 			borderColor="var(--wl-border-subtle)"
 			px="var(--wl-fluid-px)"
 			py={2}
-			minH="var(--wl-footer-bar-height)"
-			display={{ base: "none", md: "block" }}
+			display={{ base: "none", md: "flex" }}
+			alignItems="center"
+			justifyContent="space-between"
 		>
 			<Stack
 				direction="row"
-				justifyContent="space-between"
 				alignItems="center"
 				fontSize="12px"
 				color="var(--wl-text-subtle)"
@@ -52,46 +49,44 @@ export function InspectFooter({
 				flexWrap="wrap"
 				lineHeight="1"
 			>
-				<Stack direction="row" alignItems="center" gap={3} flexWrap="wrap" lineHeight="1">
-					{webhookId && (
-						<>
-							<Text as="span" lineHeight="1">
-								{statsLoading
-									? "…"
-									: `${requestCount} request${requestCount === 1 ? "" : "s"}`}
-							</Text>
-							<Text as="span" lineHeight="1">
-								{statsLoading ? "…" : formatSize(totalSizeBytes)}
-							</Text>
-						</>
-					)}
-					<Stack direction="row" alignItems="center" gap={2}>
-						<Box
-							w={2}
-							h={2}
-							borderRadius="full"
-							bg={showOnline ? "var(--wl-success)" : "var(--wl-error)"}
-							alignSelf="center"
-						/>
+				{webhookId && (
+					<>
 						<Text as="span" lineHeight="1">
-							{networkLabel}
+							{statsLoading
+								? "…"
+								: `${requestCount} request${requestCount === 1 ? "" : "s"}`}
 						</Text>
-					</Stack>
-				</Stack>
-				<Stack direction="row" alignItems="center" gap={3} lineHeight="1">
-					<a
-						href="https://github.com/liveflares/docs"
-						className="text-xs text-text-primary"
-						style={{ color: "var(--wl-accent)" }}
-						rel="noopener noreferrer"
-						target="_blank"
-					>
-						Docs
-					</a>
-					<Text as="span" fontSize="xs" lineHeight="1">
-						v{appVersion}
+						<Text as="span" lineHeight="1">
+							{statsLoading ? "…" : formatSize(totalSizeBytes)}
+						</Text>
+					</>
+				)}
+				<Stack direction="row" alignItems="center" gap={2}>
+					<Box
+						w={2}
+						h={2}
+						borderRadius="full"
+						bg={showOnline ? "var(--wl-success)" : "var(--wl-error)"}
+						alignSelf="center"
+					/>
+					<Text as="span" lineHeight="1">
+						{networkLabel}
 					</Text>
 				</Stack>
+			</Stack>
+			<Stack direction="row" alignItems="center" gap={3} lineHeight="1">
+				<a
+					href="https://github.com/liveflares/docs"
+					className="text-xs text-text-primary"
+					style={{ color: "var(--wl-accent)" }}
+					rel="noopener noreferrer"
+					target="_blank"
+				>
+					Docs
+				</a>
+				<Text as="span" fontSize="xs" lineHeight="1">
+					v{appVersion}
+				</Text>
 			</Stack>
 		</Box>
 	);

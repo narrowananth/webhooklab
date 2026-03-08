@@ -3,6 +3,7 @@ import { SearchField } from "@/components/ui/molecules";
 import { RequestItem } from "@/components/ui/organisms";
 import type { WebhookEvent } from "@/types";
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 const METHODS = ["All", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"];
 const STATUS_OPTIONS = ["All", "2xx", "4xx", "5xx"];
@@ -219,6 +220,56 @@ export function Sidebar({
 						</IconButton>
 					</Box>
 				)}
+
+				<Box
+					h="var(--wl-header-height)"
+					minH="var(--wl-header-height)"
+					px="var(--wl-fluid-px)"
+					py="var(--wl-fluid-py)"
+					borderBottomWidth="1px"
+					borderColor="var(--wl-border)"
+					flexShrink={0}
+					display="flex"
+					alignItems="center"
+					justifyContent="center"
+				>
+					<Link
+						to="/"
+						style={{
+							fontWeight: 400,
+							fontSize: "var(--wl-fluid-font-md)",
+							fontFamily: "var(--wl-font-sans)",
+							color: "var(--wl-text)",
+							textDecoration: "none",
+							display: "flex",
+							alignItems: "center",
+							gap: "0.5rem",
+						}}
+					>
+						<img
+							src="/asset/logo/favicon.png"
+							alt="LiveFlares"
+							style={{
+								width: "var(--wl-logo-size)",
+								height: "var(--wl-logo-size)",
+								borderRadius: 6,
+								objectFit: "contain",
+								flexShrink: 0,
+								verticalAlign: "middle",
+							}}
+						/>
+						<Text
+							as="span"
+							display={{ base: "none", sm: "inline" }}
+							fontSize="var(--wl-fluid-font-md)"
+							fontWeight={400}
+							lineHeight="18px"
+							alignSelf="center"
+						>
+							LiveFlares
+						</Text>
+					</Link>
+				</Box>
 
 				<Box
 					p="var(--wl-fluid-px)"
@@ -599,6 +650,7 @@ export function Sidebar({
 
 				{(pagination != null || onPageSizeChange != null) && (
 					<Box
+						h="var(--wl-footer-bar-height)"
 						minH="var(--wl-footer-bar-height)"
 						px="var(--wl-fluid-px)"
 						py={2}
@@ -606,140 +658,138 @@ export function Sidebar({
 						borderColor="var(--wl-border-subtle)"
 						display="flex"
 						alignItems="center"
-						justifyContent={pagination ? "flex-start" : "center"}
+						justifyContent="center"
 						gap={2}
 						flexShrink={0}
 						flexWrap="nowrap"
 						bg="var(--wl-bg-subtle)"
 					>
 						{pagination ? (
-							<>
-								<Stack
-									direction="row"
-									alignItems="center"
-									gap={2}
-									minW={0}
-									flexWrap="nowrap"
+							<Stack
+								direction="row"
+								alignItems="center"
+								gap={2}
+								minW={0}
+								flexWrap="nowrap"
+							>
+								<IconButton
+									aria-label="Previous page"
+									variant="ghost"
+									size="sm"
+									onClick={pagination.onPrev}
+									disabled={pagination.page <= 1}
+									px={2}
+									py={1}
+									rounded="md"
+									borderWidth="1px"
+									borderColor="var(--wl-border-subtle)"
+									bg="var(--wl-bg)"
+									color="var(--wl-text-subtle)"
+									_disabled={{ opacity: 0.5, cursor: "not-allowed" }}
+									_hover={{ bg: "var(--wl-bg-hover)" }}
 								>
-									<IconButton
-										aria-label="Previous page"
-										variant="ghost"
-										size="sm"
-										onClick={pagination.onPrev}
-										disabled={pagination.page <= 1}
-										px={2}
-										py={1}
-										rounded="md"
-										borderWidth="1px"
-										borderColor="var(--wl-border-subtle)"
-										bg="var(--wl-bg)"
-										color="var(--wl-text-subtle)"
-										_disabled={{ opacity: 0.5, cursor: "not-allowed" }}
-										_hover={{ bg: "var(--wl-bg-hover)" }}
+									<Box
+										as="span"
+										className="material-symbols-outlined"
+										style={{ fontSize: 16 }}
 									>
-										<Box
-											as="span"
-											className="material-symbols-outlined"
-											style={{ fontSize: 16 }}
-										>
-											chevron_left
-										</Box>
-									</IconButton>
-									<Text
-										fontSize="xs"
-										color="var(--wl-text-subtle)"
-										whiteSpace="nowrap"
-										flexShrink={0}
-									>
-										Page {pagination.page} / {pagination.totalPages} (
-										{pagination.total})
-									</Text>
-									<Box position="relative">
-										{pageSizeEditable ? (
-											<>
-												<Button
-													variant="ghost"
-													size="sm"
-													px={2}
-													py={1}
-													fontSize="xs"
-													rounded="md"
-													borderWidth="1px"
-													bg="var(--wl-bg)"
-													borderColor="var(--wl-border-subtle)"
-													color="var(--wl-text-subtle)"
-													_hover={{ bg: "var(--wl-bg-hover)" }}
-													onClick={() =>
-														setPageSizeDropdownOpen(
-															!pageSizeDropdownOpen,
-														)
-													}
-												>
-													{pageSize}/page
-												</Button>
-												{pageSizeDropdownOpen && (
-													<>
-														<Box
-															position="fixed"
-															inset={0}
-															zIndex={10}
-															onClick={() =>
-																setPageSizeDropdownOpen(false)
-															}
-															aria-hidden
-														/>
-														<Box
-															position="absolute"
-															bottom="100%"
-															left={0}
-															mb={1}
-															zIndex={20}
-															bg="var(--wl-bg-subtle)"
-															borderWidth="1px"
-															borderColor="var(--wl-border-subtle)"
-															rounded="lg"
-															py={1}
-															className="shadow-lg"
-														>
-															{PAGE_SIZE_OPTIONS.map((n) => (
-																<Button
-																	key={n}
-																	variant="ghost"
-																	size="sm"
-																	w="full"
-																	justifyContent="flex-start"
-																	px={3}
-																	py={1.5}
-																	fontSize="xs"
-																	color="var(--wl-text)"
-																	_hover={{
-																		bg: "var(--wl-bg-hover)",
-																	}}
-																	onClick={() => {
-																		onPageSizeChange?.(n);
-																		setPageSizeDropdownOpen(
-																			false,
-																		);
-																	}}
-																>
-																	{n}
-																</Button>
-															))}
-														</Box>
-													</>
-												)}
-											</>
-										) : (
-											<Text
+										chevron_left
+									</Box>
+								</IconButton>
+								<Text
+									fontSize="xs"
+									color="var(--wl-text-subtle)"
+									whiteSpace="nowrap"
+									flexShrink={0}
+								>
+									Page {pagination.page} / {pagination.totalPages} (
+									{pagination.total})
+								</Text>
+								<Box position="relative">
+									{pageSizeEditable ? (
+										<>
+											<Button
+												variant="ghost"
+												size="sm"
+												px={2}
+												py={1}
 												fontSize="xs"
+												rounded="md"
+												borderWidth="1px"
+												bg="var(--wl-bg)"
+												borderColor="var(--wl-border-subtle)"
 												color="var(--wl-text-subtle)"
-												whiteSpace="nowrap"
+												_hover={{ bg: "var(--wl-bg-hover)" }}
+												onClick={() =>
+													setPageSizeDropdownOpen(
+														!pageSizeDropdownOpen,
+													)
+												}
 											>
 												{pageSize}/page
-											</Text>
-										)}
-									</Box>
-								</Stack>
+											</Button>
+											{pageSizeDropdownOpen && (
+												<>
+													<Box
+														position="fixed"
+														inset={0}
+														zIndex={10}
+														onClick={() =>
+															setPageSizeDropdownOpen(false)
+														}
+														aria-hidden
+													/>
+													<Box
+														position="absolute"
+														bottom="100%"
+														left={0}
+														mb={1}
+														zIndex={20}
+														bg="var(--wl-bg-subtle)"
+														borderWidth="1px"
+														borderColor="var(--wl-border-subtle)"
+														rounded="lg"
+														py={1}
+														className="shadow-lg"
+													>
+														{PAGE_SIZE_OPTIONS.map((n) => (
+															<Button
+																key={n}
+																variant="ghost"
+																size="sm"
+																w="full"
+																justifyContent="flex-start"
+																px={3}
+																py={1.5}
+																fontSize="xs"
+																color="var(--wl-text)"
+																_hover={{
+																	bg: "var(--wl-bg-hover)",
+																}}
+																onClick={() => {
+																	onPageSizeChange?.(n);
+																	setPageSizeDropdownOpen(
+																		false,
+																	);
+																}}
+															>
+																{n}
+															</Button>
+														))}
+													</Box>
+												</>
+											)}
+										</>
+									) : (
+										<Text
+											fontSize="xs"
+											color="var(--wl-text-subtle)"
+											whiteSpace="nowrap"
+										>
+											{pageSize}/page
+										</Text>
+									)}
+								</Box>
 								<IconButton
 									aria-label="Next page"
 									variant="ghost"
@@ -764,7 +814,7 @@ export function Sidebar({
 										chevron_right
 									</Box>
 								</IconButton>
-							</>
+							</Stack>
 						) : (
 							<Box position="relative">
 								{pageSizeEditable ? (

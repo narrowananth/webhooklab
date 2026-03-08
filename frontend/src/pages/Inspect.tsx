@@ -234,7 +234,7 @@ export function Inspect() {
 							Math.min(searchData.pagination?.totalPages ?? 1, p + 1),
 						),
 				}
-			: !hasFilters && eventsData?.pagination
+			: !hasFilters && (isPaused || !wsConnected) && eventsData?.pagination
 				? {
 						page: eventsData.pagination.page,
 						totalPages: eventsData.pagination.totalPages,
@@ -344,27 +344,12 @@ export function Inspect() {
 			position="fixed"
 			inset={0}
 			display="flex"
-			flexDirection="column"
+			flexDirection="row"
 			overflow="hidden"
 			minW={0}
 			bg="var(--wl-bg)"
 			color="var(--wl-text)"
 		>
-			<TopNav
-				webhookUrl={fullWebhookUrl}
-				onCopy={handleCopy}
-				onClear={() => setShowClearConfirm(true)}
-				isPaused={isPaused}
-				onTogglePause={togglePaused}
-				theme={theme}
-				onToggleTheme={toggleTheme}
-				autoSelectNew={autoSelectNew}
-				onToggleAutoSelectNew={toggleAutoSelectNew}
-				sidebarOpen={sidebarOpen}
-				onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
-				hasSelection={!!selectedEvent}
-			/>
-
 			{showClearConfirm && (
 				<Box
 					position="fixed"
@@ -501,7 +486,6 @@ export function Inspect() {
 				display="flex"
 				overflow="hidden"
 				position="relative"
-				pb={{ base: 0, md: "var(--wl-footer-bar-height)" }}
 			>
 				<Sidebar
 					events={displayEvents}
@@ -553,37 +537,59 @@ export function Inspect() {
 					overflow="hidden"
 					bg="var(--wl-bg)"
 				>
-					{selectedEvent ? (
-						<InspectDetailPane
+					<TopNav
+						webhookUrl={fullWebhookUrl}
+						onCopy={handleCopy}
+						onClear={() => setShowClearConfirm(true)}
+						isPaused={isPaused}
+						onTogglePause={togglePaused}
+						theme={theme}
+						onToggleTheme={toggleTheme}
+						autoSelectNew={autoSelectNew}
+						onToggleAutoSelectNew={toggleAutoSelectNew}
+						sidebarOpen={sidebarOpen}
+						onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
+						hasSelection={!!selectedEvent}
+					/>
+					<Box
+						flex={1}
+						minH={0}
+						minW={0}
+						display="flex"
+						flexDirection="column"
+						overflow="hidden"
+					>
+						{selectedEvent ? (
+							<InspectDetailPane
 							event={selectedEvent}
 							activeDetailTab={activeDetailTab}
 							onTabChange={setActiveDetailTab}
 							searchFilter={searchFilter}
 						/>
-					) : (
-						<EmptyState
-							title={
-								displayEvents.length > 0
-									? "Select a request to inspect"
-									: "Waiting for webhook events..."
-							}
-							description={
-								displayEvents.length > 0
-									? "Detailed payload, headers, and response data will appear here."
-									: "Send a HTTP request to your unique URL to see the request details here in real-time. We support POST, GET, PUT, and more."
-							}
-						/>
-					)}
+						) : (
+							<EmptyState
+								title={
+									displayEvents.length > 0
+										? "Select a request to inspect"
+										: "Waiting for webhook events..."
+								}
+								description={
+									displayEvents.length > 0
+										? "Detailed payload, headers, and response data will appear here."
+										: "Send a HTTP request to your unique URL to see the request details here in real-time. We support POST, GET, PUT, and more."
+								}
+							/>
+						)}
+					</Box>
+					<InspectFooter
+						webhookId={resolvedId ?? null}
+						requestCount={footerRequestCount}
+						totalSizeBytes={footerTotalSizeBytes}
+						statsLoading={footerStatsLoading}
+						appVersion="1.0.0"
+					/>
 				</Box>
 			</Box>
-
-			<InspectFooter
-				webhookId={resolvedId ?? null}
-				requestCount={footerRequestCount}
-				totalSizeBytes={footerTotalSizeBytes}
-				statsLoading={footerStatsLoading}
-				appVersion="1.0.0"
-			/>
 		</Box>
 	);
 }

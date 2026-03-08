@@ -12,9 +12,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -24,16 +29,16 @@ public class WebhookServiceImpl implements WebhookService {
 	private final WebhookRepository webhookRepository;
 	private final WebhookMapper webhookMapper;
 	private final AuthProperties authProperties;
+	private final PlatformTransactionManager transactionManager;
 
 	@Override
 	@Transactional
-	public WebhookDto create(String name, String slug) {
+	public WebhookDto create(String slug) {
 		String cleanSlug = (slug != null && slug.matches("^[a-zA-Z0-9_-]{3,100}$")) ? slug.toLowerCase() : null;
-		Webhook webhook = webhookMapper.toEntity(name, cleanSlug);
+		Webhook webhook = webhookMapper.toEntity(cleanSlug);
 		if (webhook == null) {
 			webhook = new Webhook();
 			webhook.setWebhookId(java.util.UUID.randomUUID());
-			webhook.setName(name);
 			webhook.setSlug(cleanSlug);
 		}
 		Webhook saved = webhookRepository.save(webhook);
@@ -42,12 +47,38 @@ public class WebhookServiceImpl implements WebhookService {
 
 	@Override
 	@Transactional
-	public WebhookDto createWithUrl(String name, String slug, String requestOrigin) {
-		WebhookDto dto = create(name, slug);
-		String baseUrl = getWebhookBaseUrl(requestOrigin);
-		findEntityByWebhookIdOrSlug(dto.getId().toString())
-				.ifPresent(entity -> dto.setUrl(buildWebhookUrl(entity, baseUrl)));
-		return dto;
+	public WebhookDto createWithUrl(String slug, String requestOrigin) {
+		if (slug != null) {
+			slug = slug.trim();
+		}
+		String cleanSlug = (slug != null && !slug.isEmpty() && slug.matches("^[a-zA-Z0-9_-]{3,100}$")) ? slug.toLowerCase() : null;
+		if (cleanSlug != null) {
+			Optional<Webhook> existing = webhookRepository.findBySlugIgnoreCase(cleanSlug);
+			if (existing.isPresent()) {
+				Webhook entity = existing.get();
+				WebhookDto dto = webhookMapper.toDto(entity);
+				dto.setUrl(buildWebhookUrl(entity, getWebhookBaseUrl(requestOrigin)));
+				return dto;
+			}
+		}
+		try {
+			WebhookDto dto = create(slug);
+			String baseUrl = getWebhookBaseUrl(requestOrigin);
+			findEntityByWebhookIdOrSlug(dto.getId().toString())
+					.ifPresent(entity -> dto.setUrl(buildWebhookUrl(entity, baseUrl)));
+			return dto;
+		} catch (DataIntegrityViolationException e) {
+			if (cleanSlug != null) {
+				Optional<Webhook> existing = findExistingBySlugInNewTransaction(cleanSlug);
+				if (existing.isPresent()) {
+					Webhook entity = existing.get();
+					WebhookDto dto = webhookMapper.toDto(entity);
+					dto.setUrl(buildWebhookUrl(entity, getWebhookBaseUrl(requestOrigin)));
+					return dto;
+				}
+			}
+			throw e;
+		}
 	}
 
 	@Override
@@ -97,5 +128,11 @@ public class WebhookServiceImpl implements WebhookService {
 	public String buildWebhookUrl(Webhook webhook, String baseUrl) {
 		String path = webhook.getSlug() != null ? "webhook/" + webhook.getSlug() : "webhook/" + webhook.getWebhookId();
 		return baseUrl + "/" + path;
+	}
+
+	private Optional<Webhook> findExistingBySlugInNewTransaction(String cleanSlug) {
+		TransactionDefinition def = new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+		TransactionTemplate txTemplate = new TransactionTemplate(transactionManager, def);
+		return txTemplate.execute(status -> webhookRepository.findBySlugIgnoreCase(cleanSlug));
 	}
 }

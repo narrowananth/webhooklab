@@ -7,9 +7,9 @@ import java.util.Optional;
 
 public interface WebhookService {
 
-	WebhookDto create(String name, String slug);
+	WebhookDto create(String slug);
 
-	WebhookDto createWithUrl(String name, String slug, String requestOrigin);
+	WebhookDto createWithUrl(String slug, String requestOrigin);
 
 	WebhookDto getBySlug(String slug, String requestOrigin);
 

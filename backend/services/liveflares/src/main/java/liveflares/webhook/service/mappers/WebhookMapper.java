@@ -21,5 +21,5 @@ public interface WebhookMapper {
 	@Mapping(target = "id", ignore = true)
 	@Mapping(target = "webhookId", expression = "java(java.util.UUID.randomUUID())")
 	@Mapping(target = "createdAt", ignore = true)
-	Webhook toEntity(String name, String slug);
+	Webhook toEntity(String slug);
 }

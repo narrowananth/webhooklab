@@ -3,7 +3,6 @@
 CREATE TABLE webhooks (
     id BIGSERIAL PRIMARY KEY,
     webhook_id UUID NOT NULL UNIQUE,
-    name VARCHAR(255),
     slug VARCHAR(100) UNIQUE,
     created_at TIMESTAMP NOT NULL
 );

@@ -4,7 +4,12 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-const WS_SOCKET_ERROR_CODES = new Set(["EPIPE", "ECONNRESET", "ETIMEDOUT"]);
+const WS_SOCKET_ERROR_CODES = new Set([
+	"EPIPE",
+	"ECONNRESET",
+	"ETIMEDOUT",
+	"ECONNREFUSED",
+]);
 
 function suppressWsProxySocketErrors(): Plugin {
 	return {

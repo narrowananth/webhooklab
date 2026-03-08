@@ -2,7 +2,6 @@ import { Box, Button, IconButton, Text } from "@/components/ui/atoms";
 import { truncateUrlEnd } from "@/lib/truncateUrl";
 import { useInspectStore } from "@/store/use-inspect-store";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 
 export type TopNavProps = {
 	webhookUrl: string;
@@ -99,16 +98,7 @@ export function TopNav({
 			justifyContent="space-between"
 			gap="var(--wl-fluid-lg)"
 		>
-			<Box
-				display="flex"
-				alignItems="center"
-				flexShrink={0}
-				w={{ base: "auto", md: "var(--wl-sidebar-width)" }}
-				minW={{ base: 0, md: "var(--wl-sidebar-min-width)" }}
-				maxW={{ md: "var(--wl-sidebar-max-width)" }}
-				h={10}
-				gap={2}
-			>
+			<Box display="flex" alignItems="center" flexShrink={0} gap={2}>
 				<IconButton
 					aria-label={sidebarOpen ? "Close request list" : "Open request list"}
 					variant="ghost"
@@ -133,39 +123,6 @@ export function TopNav({
 						{sidebarOpen ? "chevron_left" : "menu"}
 					</Box>
 				</IconButton>
-				<Link
-					to="/"
-					style={{
-						fontWeight: 600,
-						fontSize: "var(--wl-fluid-font-md)",
-						color: "var(--wl-text)",
-						textDecoration: "none",
-						display: "flex",
-						alignItems: "center",
-						gap: "0.5rem",
-					}}
-				>
-					<img
-						src="/asset/logo/favicon.png"
-						alt="LiveFlares"
-						style={{
-							width: "var(--wl-logo-size)",
-							height: "var(--wl-logo-size)",
-							borderRadius: 6,
-							objectFit: "contain",
-							flexShrink: 0,
-							verticalAlign: "middle",
-						}}
-					/>
-					<Text
-						as="span"
-						display={{ base: "none", sm: "inline" }}
-						lineHeight="1"
-						alignSelf="center"
-					>
-						LiveFlares
-					</Text>
-				</Link>
 			</Box>
 
 			<Box

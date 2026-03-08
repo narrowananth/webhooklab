@@ -35,9 +35,6 @@ public class Webhook extends AuditingEntity {
 	@Column(name = "webhook_id", nullable = false, unique = true)
 	private UUID webhookId;
 
-	@Column(name = "name", length = 255)
-	private String name;
-
 	@Column(name = "slug", length = 100, unique = true)
 	private String slug;
 }

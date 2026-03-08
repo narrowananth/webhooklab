@@ -14,4 +14,6 @@ public interface WebhookRepository extends JpaRepository<Webhook, Long> {
 	Optional<Webhook> findByWebhookId(UUID webhookId);
 
 	Optional<Webhook> findBySlug(String slug);
+
+	Optional<Webhook> findBySlugIgnoreCase(String slug);
 }

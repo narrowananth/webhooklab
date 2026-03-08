@@ -33,7 +33,6 @@ function toEventsResponse(payload: PaginatedData<WebhookEvent>): EventsResponse 
 export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function createWebhook(opts?: {
-	name?: string;
 	slug?: string;
 }): Promise<WebhookInbox & { url: string; slug?: string }> {
 	const data = await request<WebhookInbox & { url: string; slug?: string }>(
@@ -41,7 +40,7 @@ export async function createWebhook(opts?: {
 		{
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ name: opts?.name, slug: opts?.slug }),
+			body: JSON.stringify({ slug: opts?.slug }),
 		},
 	);
 	return data as WebhookInbox & { url: string; slug?: string };
