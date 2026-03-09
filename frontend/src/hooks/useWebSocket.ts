@@ -4,7 +4,10 @@ import type { WebhookEvent } from "@/types";
 import { useEffect, useRef, useState } from "react";
 
 function getWsUrl(webhookId: string): string {
-	const base = window.location.origin.replace(/^http/, "ws");
+	const apiBase = import.meta.env.VITE_BACKEND_URL;
+	const base = apiBase
+		? new URL(apiBase).origin.replace(/^http/, "ws")
+		: window.location.origin.replace(/^http/, "ws");
 	return `${base}/ws?webhookId=${webhookId}`;
 }
 

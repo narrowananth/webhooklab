@@ -1,4 +1,5 @@
 import http from "node:http";
+import https from "node:https";
 import type { UserConfig, ViteDevServer, Plugin } from "vite";
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
@@ -11,18 +12,25 @@ const WS_SOCKET_ERROR_CODES = new Set([
 	"ECONNREFUSED",
 ]);
 
+function wrapSocket(socket: import("node:net").Socket) {
+	const rawEmit = socket.emit.bind(socket);
+	socket.emit = function (event: string, ...args: unknown[]) {
+		if (event === "error" && args[0]) {
+			const err = args[0] as NodeJS.ErrnoException;
+			if (err.code && WS_SOCKET_ERROR_CODES.has(err.code)) return false;
+			if (err.errno === 32 || err.message?.includes?.("EPIPE")) return false;
+		}
+		return rawEmit(event, ...args);
+	};
+}
+
 function suppressWsProxySocketErrors(): Plugin {
 	return {
 		name: "suppress-ws-proxy-socket-errors",
 		configureServer(server: ViteDevServer) {
-			server.httpServer?.on("upgrade", (req, socket) => {
+			server.httpServer?.prependListener("upgrade", (req, socket) => {
 				if (!req.url?.startsWith("/ws")) return;
-
-				socket.on("error", (err: NodeJS.ErrnoException) => {
-					if (err.code && WS_SOCKET_ERROR_CODES.has(err.code)) return;
-
-					console.error("[vite] ws client socket error:", err);
-				});
+				wrapSocket(socket);
 			});
 		},
 	};
@@ -34,6 +42,16 @@ export default defineConfig(({ mode }): UserConfig => {
 	const backendUrl = env.VITE_BACKEND_URL ?? "http://localhost:4000";
 	const backendOrigin = backendUrl ? new URL(backendUrl).origin : backendUrl;
 	const wsUrl = backendOrigin.replace(/^http/, "ws");
+	const isHttps = backendOrigin.startsWith("https:");
+	const proxyAgent = isHttps ? new https.Agent() : new http.Agent();
+
+	function proxyEntry(target: string) {
+		return {
+			target,
+			changeOrigin: true,
+			...(isHttps && { secure: false, agent: proxyAgent }),
+		};
+	}
 
 	return {
 		plugins: [
@@ -58,37 +76,37 @@ export default defineConfig(({ mode }): UserConfig => {
 		server: {
 			host: true,
 			port: env.VITE_PORT ? Number(env.VITE_PORT) : undefined,
+			allowedHosts: [
+				"liveflares.com",
+				"api.liveflares.com",
+				"localhost",
+				".localhost",
+			],
+			hmr: env.VITE_HMR_HOST
+				? {
+						host: env.VITE_HMR_HOST,
+						protocol: (env.VITE_HMR_PROTOCOL as "ws" | "wss") ?? "wss",
+					}
+				: undefined,
 
 			proxy: {
-				"/health": {
-					target: backendOrigin,
-					changeOrigin: true,
-				},
+				"/health": proxyEntry(backendOrigin),
 
-				"/webhooks": {
-					target: backendOrigin,
-					changeOrigin: true,
-				},
+				"/webhooks": proxyEntry(backendOrigin),
 
-				"/events": {
-					target: backendOrigin,
-					changeOrigin: true,
-				},
+				"/events": proxyEntry(backendOrigin),
 
-				"/webhook": {
-					target: backendOrigin,
-					changeOrigin: true,
-				},
+				"/webhook": proxyEntry(backendOrigin),
 
 				"/ws": {
 					target: wsUrl,
 					ws: true,
-					agent: new http.Agent(),
+					agent: proxyAgent,
 
 					configure: (proxy) => {
 						proxy.on("error", (err: NodeJS.ErrnoException) => {
 							if (err.code && WS_SOCKET_ERROR_CODES.has(err.code)) return;
-
+							if (err.errno === 32 || err.message?.includes?.("EPIPE")) return;
 							console.error("[vite] ws proxy error:", err);
 						});
 
